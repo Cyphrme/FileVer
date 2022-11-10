@@ -1,0 +1,17 @@
+// See https://github.com/Cyphrme/watch
+// Run:
+//
+// `cd filever/test && watch`
+//
+// Alternatively: `watch -config=test/watch.json5`
+{
+	"WatchCommand": {
+		"test/watch/src/test_1.js": "test/watch_src.sh",
+	},
+	"ExcludeStrings": [
+		"min.js",
+		"join.js",
+		"map",
+	],
+	"RunCmdOnStart": true
+}
