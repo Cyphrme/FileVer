@@ -165,15 +165,6 @@ restored.
 # Examples
 See [version_test.go](version_test.go)
 
-# Gotchas
-
-- Versioned file names must be globally unique, but may appear in multiple
-  output directories. (Update, probably not anymore, it's now path'd)  The application looks for versioned files using a single
-  data structure, and the update datastructure itself does not associate a
-  particular FileVer with a particular output dir.  It searches all output dirs
-  for a particular file.  
-
-
 # FAQ
 
 ## Why not use HTTP ETag?
