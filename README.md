@@ -10,7 +10,6 @@ frequently updated and changed.
 
 The version string is a digest derived from the content of the file.  
 
-
 We recommend using this tool in conjunction with [watch][watch].  Once
 configured with [watch][watch], a file change will trigger a global update of
 file versions in source files, making development fast and painless.
