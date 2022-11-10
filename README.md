@@ -33,8 +33,7 @@ Together they are "VersionReplace".
 # Version
 The default version is 48 bits, 12 character long (8 characters of base64 URI),
 with a 1 out of 281 trillion chance for collision. (We considered 7 characters,
-1 out of 4 trillion chance, but that's 5.25 bytes.  Mind as well use the whole
-byte)
+1 out of 4 trillion chance, but that's 5.25 bytes.  Better to use a whole byte.)
 
 	app.min.js?fv=4mIbJJPq
 
@@ -43,16 +42,16 @@ A base file of a FileVer is everything before the last `?` character.
 # Naming
 A FileVer is the full file name with a file version.
 
-| Name                             | Example                   |
-| -------------------------------- | ------------------------- |
+| Name                                  | Example                   |
+| ------------------------------------- | ------------------------- |
 | FileVer, versioned file, full version | `app.min.js?fv=4mIbJJPq`  |
-| File, File name, bare file       | `app.min.js`              |
-| Version                          | `4mIbJJPq`                |
-| Delimiter, delim                 | `?fv=`                    |
-| Delim'd Version                  | `?fv=4mIbJJPq`            |
-| zero'd Version, dummy Version    | `00000000`                |
-| Delim'd dummy Version            | `?fv=00000000`            |
-| Dummy Versioned File, Full Dummy | `app.min.js?fv=00000000`  |
+| File, File name, bare file            | `app.min.js`              |
+| Version                               | `4mIbJJPq`                |
+| Delimiter, delim                      | `?fv=`                    |
+| Delim'd Version                       | `?fv=4mIbJJPq`            |
+| zero'd Version, dummy Version         | `00000000`                |
+| Delim'd dummy Version                 | `?fv=00000000`            |
+| Dummy Versioned File, Full Dummy      | `app.min.js?fv=00000000`  |
 
 A FileVer may refer to a file with a dummy version, i.e. app.min.js?fv=00000000 is a FileVer.  
 
@@ -113,14 +112,12 @@ FileVer). FileVer is responsible for hashing the updated file, placing it into
 the dist directory, and update any source files references to the updated file
 in `dist`.
 
-
 Pipeline:
 	- modify js source file (file.js)-> 
 	- watch is triggered, runs a `.sh` script that invokes 1. esbuild and then 2. FileVer ->
 	- esbuild minifies source file, outputs `src/file.min.js`. 
 	- FileVer versions source file and outputs `dist/file.min.js?fv=4mIbJJPq` -> 
 	- FileVer updates other source code files in `dist` with FileVer (Replace).
-
 
 
 # Dummies - Import References to Versioned Files
@@ -154,16 +151,16 @@ individually enumerated.  See `Example_noDummy()` for a demonstration. Replace()
 will still be needed to update references in `dist`.
 
 ## Update Recursion
-The suggested version pipeline uses an output directory to avoid update
-recursion. Since some formats, like Javascript modules, may refer to other
-versioned files, this risks file version recursion. To avoid this, the pipeline
-is one directional. It's suggested that source files that refer to other
-versioned files use a dummy, constant file version in references, such as
+The suggested version pipeline uses an input and output directory inorder to
+avoid update recursion. Since some formats, like Javascript modules, may refer
+to other versioned files, this risks file version recursion. To avoid this, the
+pipeline is one directional. It's suggested that source files that refer to
+other versioned files use a dummy, constant file version in references, such as
 `app.min.js?fv=00000000`.  Then, after the file version digest is calculated and
-placed in the dist dir, the version is updated.  This has the consequence that
-the versioned file's name, after replace, will not be calculable from the source
-unless the dummy version is restored.
-
+placed in the dist dir, the version in other source files is updated with
+Replace().  This has the consequence that the versioned file's name, after
+replace, will not be calculable from the source unless the dummy version is
+restored.
 
 # Examples
 See [version_test.go](version_test.go)
