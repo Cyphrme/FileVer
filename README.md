@@ -1,38 +1,34 @@
 # FileVer
 -------------------------------------
 
-FileVer (File Version) provides automatic file versioning and distribution.
+FileVer (File Version) automatically versions files for packaging and
+distribution. File versioning is essential for browser cache busting for
+Javascript, HTML, CSS, images, and other assets loaded by the browser.  
 
-File versioning is essential for browser cache busting. FileVer is useful
-Javascript, HTML, CSS, images, and other assets loaded by the browser.  FileVer
-shines when source files refer to versioned files and when file contents are
-frequently updated and changed.  
+FileVer has two main functions:
+ 1. (Version) Hash versioned files to generate the file version. Placing
+    versioned files, named with the file version, into an output directory.
+    Delete any old versions of that file.  
+ 2. (Replace) In the output directory (`dist`), update references in source
+    files to versioned files.
 
-The version string is a digest derived from the content of the file.  
-
-We recommend using this tool in conjunction with [watch][watch].  Once
-configured with [watch][watch], a file change will trigger a global update of
-file versions in source files, making development fast and painless.
+We recommend using FileVer in conjunction with [watch][watch] and once
+configured, a file change will trigger a global update of file versions and
+references in source files, making development fast and painless. Compared to
+other methods, FileVer shines when source files refer to versioned files and
+when file contents are frequently updated and changed.
 
 FileVer may be used in pipelines that involves these keywords:
 TypeScript, Sass, Go Templates, handlebars, Javascript minification, HTML
 minification, and CSS minification.
 
 
-# FileVer
-FileVer has two main functions:
- 1. (Version) Hash versioned files to generate the file version. Placing
-    versioned files, named with the file version, into an output directory.
-    Delete any old versioned file.  
- 2. (Replace) In the output directory (`dist`), update references in source
-    files to versioned files.
-
-Together they are "VersionReplace".
-
 # Version
+The version string is a digest derived from the content of the file.  
 The default version is 48 bits, 12 character long (8 characters of base64 URI),
 with a 1 out of 281 trillion chance for collision. (We considered 7 characters,
-1 out of 4 trillion chance, but that's 5.25 bytes.  Better to use a whole byte.)
+1 out of 4 trillion chance, but that's 5.25 bytes and it's better to use a whole
+byte.)
 
 	app.min.js?fv=4mIbJJPq
 
@@ -43,7 +39,7 @@ A FileVer is the full file name with a file version.
 
 | Name                                  | Example                   |
 | ------------------------------------- | ------------------------- |
-| FileVer, versioned file, full version | `app.min.js?fv=4mIbJJPq`  |
+| FileVer, versioned file, full version | `app?fv=4mIbJJPq.min.js`  |
 | File, File name, bare file            | `app.min.js`              |
 | Version                               | `4mIbJJPq`                |
 | Delimiter, delim                      | `?fv=`                    |
@@ -78,19 +74,10 @@ FileVer will version files in `src`, output to `dist`, and perform Replace() in
 dist. FileVer by default recreates the directory structure of `src` into `dist`.
 If this is not desired, see examples for "manual" versioning.  
 
-Files that are not concerned with file versioning should be placed in `dist`.  
+Files that are not concerned with file versioning should be placed directly in
+`dist`.  
 
 Directories `src` and `dist` may be named as desired.  
-
-Example:
-
-```
-web_server
-  ⎿ needing_to_be_versioned
-  ⎿ src
-```
-
-Where `src` is FileVer's `dist`, and `needing_to_be_versioned` is FileVer's src.  
 
 
 ## All source file imports must be relative to directory `dist`
@@ -111,16 +98,16 @@ FileVer). FileVer is responsible for hashing the updated file, placing it into
 the dist directory, and update any source files references to the updated file
 in `dist`.
 
-Pipeline:
-	- modify js source file (file.js)-> 
-	- watch is triggered, runs a `.sh` script that invokes 1. esbuild and then 2. FileVer ->
-	- esbuild minifies source file, outputs `src/file.min.js`. 
-	- FileVer versions source file and outputs `dist/file.min.js?fv=4mIbJJPq` -> 
-	- FileVer updates other source code files in `dist` with FileVer (Replace).
+Then:
+  - modify js source file (file.js)-> 
+  - watch is triggered, runs a `.sh` script that invokes 1. esbuild and then 2. FileVer ->
+  - esbuild minifies source file, outputs `src/file.min.js`. 
+  - FileVer versions source file and outputs `dist/file.min.js?fv=4mIbJJPq` -> 
+  - FileVer updates other source code files in `dist` with FileVer (Replace).
 
 
 # Dummies - Import References to Versioned Files
-A text based source files that refers to versioned file should use the **dummy
+All text based source files that refer to versioned file should use the **dummy
 version** in import references in the `src` directory.  After running, FileVer
 will update references in `dist` with correct versioning (input will be left
 untouched).
@@ -150,7 +137,7 @@ individually enumerated.  See `Example_noDummy()` for a demonstration. Replace()
 will still be needed to update references in `dist`.
 
 ## Update Recursion
-The suggested version pipeline uses an input and output directory inorder to
+The suggested version pipeline uses an input and output directory in order to
 avoid update recursion. Since some formats, like Javascript modules, may refer
 to other versioned files, this risks file version recursion. To avoid this, the
 pipeline is one directional. It's suggested that source files that refer to
