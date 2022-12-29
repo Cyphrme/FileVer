@@ -11,13 +11,14 @@ import (
 	"strings"
 
 	"github.com/cyphrme/coze"
+	"github.com/rs/zerolog/log"
 )
 
 // VersionSize is the number of digest characters in the Version.
 var VersionSize = 8
 
 // Delim is the FileVer Delimiter.  FileVers are end delimited by any non-b64u
-// character, such as "?".
+// character, such as "." or another "?".
 var Delim = "?fv="
 
 // VerRegex is the version string regex e.g. `\?fv=00000000`. The version is
@@ -42,9 +43,14 @@ var VerAnySizeRegexC *regexp.Regexp
 var HashAlg = coze.SHA256
 
 // Config holds the settings for operating the main FileVer functions.
+//
+//	Src   - source directory starting point.
+//	Dist  - destination directory.  Default: Output will be on one level.
+//	MidVer - Mid File version format, e.g. test?fv=000.txt instead of test.txt?fv=000
 type Config struct {
-	Src  string
-	Dist string
+	Src    string
+	Dist   string
+	MidVer bool
 
 	// Use Internally
 	Info *Info
@@ -67,7 +73,7 @@ type Info struct {
 	// `(app\.min\.js\?fv=[0-9A-Za-z_-]*)|(coze\.min\.js\?fv=[0-9A-Za-z_-]*)`
 	SAVR string
 	//PV "Path:Version"  which is [dist path baseName: "New" Version]. e.g.
-	//`"test/dummy/dist/test_1.js":"?fv=4WYoW0MN"``
+	//`"test/dummy/dist/test_1.js":"4WYoW0MN"``
 	PV map[string]string
 
 	// Versioned files (relatively pathed to c.Dist).  Generated when calling
@@ -75,7 +81,9 @@ type Info struct {
 	VersionedFiles []string
 
 	// Used for processing
-	CurrentPath    string `json:"-"`
+	CurrentPath    string `json:"-"` // Relative to dist or src, not from program root dir.
+	CurrentVersion string `json:"-"` // The Version, e.g. `4WYoW0MN`
+	CurrentBare    string `json:"-"` // File name with no pathing or version.
 	CurrentMatches int    `json:"-"`
 }
 
@@ -102,7 +110,7 @@ func Version(c *Config) (err error) {
 	c.Info = new(Info)
 	c.Info.PV = map[string]string{}
 
-	scrFilesPaths, err := DirVersionedFiles(c.Src)
+	scrFilesPaths, err := ExistingVersionedFiles(c.Src)
 	if err != nil {
 		return err
 	}
@@ -114,17 +122,20 @@ func Version(c *Config) (err error) {
 			return err
 		}
 		// Set the Info struct
-		basePath := VerAnySizeRegexC.ReplaceAllString(file, "") // get bare file name no version with path
-		c.Info.PV[basePath] = VerAnySizeRegexC.FindString(file)
+		basePath := VerAnySizeRegexC.ReplaceAllString(file, "")                            // get bare file name no version with path
+		c.Info.PV[basePath] = strings.TrimPrefix(VerAnySizeRegexC.FindString(file), Delim) // Set version, e.g. "4WYoW0MN"
 		c.Info.VersionedFiles = append(c.Info.VersionedFiles, file)
 	}
 	return nil
 }
 
-// Replace updates all source file references to versioned files with te correct
-// references. c.Info.PV and c.Info.VersionedFiles must be set correctly.
+// Replace updates all source file references to versioned files with the
+// current version. c.Info.PV and c.Info.VersionedFiles must be set correctly.
 func Replace(c *Config) (err error) {
-	//log.Debug().Msgf("Replace Config  %+v Info: %+v", c, c.Info)
+	fmt.Printf("\nReplace Config  %+v Info: %+v", c, c.Info)
+	if c.Info == nil {
+		return fmt.Errorf("c.Info must be set.")
+	}
 	c.Info.SAVR = ""
 
 	bookEnd := false
@@ -137,44 +148,61 @@ func Replace(c *Config) (err error) {
 		} else {
 			bookEnd = true
 		}
+		// TODO probably needs to be modified to support mid version.
 		c.Info.SAVR += "(" + escapedBase + VerAnySizeRegex + ")"
 	}
 	reg := regexp.MustCompile(c.Info.SAVR)
 
+	// 20221229 OLD
 	// Implements regexp.ReplaceFunc
+	// var PathedVersionedReplace = func(in []byte) []byte {
+	// 	c.Info.CurrentMatches++
+	// 	bare := VerAnySizeRegexC.ReplaceAllString(string(in), "") // get bare file name.
+	// 	path := filepath.Dir(c.Info.CurrentPath) + string(os.PathSeparator) + bare
+	// 	version := c.Info.PV[path]
+	// 	fmt.Printf("\n\nPathedVersionedReplace - match: %s, c.Info.CurrentPath: %s; bare: %s; path: %s; New Version: %s\n", in, c.Info.CurrentPath, bare, path, version)
+	// 	return []byte(bare + version)
+	// }
+
+	// "in" will only be file name, without the relative subdirectory path.
 	var PathedVersionedReplace = func(in []byte) []byte {
+		fmt.Printf("PathedVersionedReplace - match: %s\n", in)
 		c.Info.CurrentMatches++
-		bare := VerAnySizeRegexC.ReplaceAllString(string(in), "") // get bare file name.
-		path := filepath.Dir(c.Info.CurrentPath) + string(os.PathSeparator) + bare
-		version := c.Info.PV[path]
-		//log.Debug().Msgf("PathedVersionedReplace.  In match: %s, c.Info.CurrentPath: %s; path: %s; New Version: %s", in, c.Info.CurrentPath, path, version)
-		return []byte(bare + version)
+		return []byte(genFileVer(c.Info.CurrentBare, c.Info.CurrentVersion, c))
 	}
 
-	// Walk walks all files (recursively) in "dist" directory.
+	// Walk walks all files (recursively) in directory.
+	// Variable path is relative to to running location of the program (program root dir).
 	var walk = func(path string, d fs.DirEntry, err error) error {
+		fmt.Printf("Walk - path: %s; d: %+v\n", path, d)
 		if err != nil {
 			return err
 		}
-		if !d.IsDir() {
-			c.Info.CurrentPath = path
-			read, err := os.ReadFile(path)
+		if d.IsDir() {
+			return nil
+		}
+		// Current path should be relative to dist, not including dist.
+		c.Info.CurrentPath = strings.TrimPrefix(path, c.Dist+"/")
+		c.Info.CurrentBare = VerAnySizeRegexC.ReplaceAllString(c.Info.CurrentPath, "") // get bare file name, without pathing.
+		c.Info.CurrentVersion = c.Info.PV[c.Info.CurrentBare]
+
+		fmt.Printf("Walk - c.Info %+v\n", c.Info)
+
+		read, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		// Set matches to 0 for each file
+		c.Info.CurrentMatches = 0
+		replaced := reg.ReplaceAllFunc(read, PathedVersionedReplace)
+		fmt.Printf("Replaced contents: %s\n", replaced)
+		if c.Info.CurrentMatches > 0 { // Only write out on match.
+			c.Info.TotalSourceReplaces += c.Info.CurrentMatches
+			c.Info.UpdatedFilePaths = append(c.Info.UpdatedFilePaths, path)
+			log.Debug().Msgf("info.CurrentMatches: %d.  Writing updated file: %s", c.Info.CurrentMatches, path)
+			err = os.WriteFile(path, replaced, 0)
 			if err != nil {
 				return err
-			}
-
-			// Set matches to 0 for each file
-			c.Info.CurrentMatches = 0
-			replaced := reg.ReplaceAllFunc(read, PathedVersionedReplace)
-			//log.Debug().Msgf("Replaced contents: %s", replaced)
-			if c.Info.CurrentMatches > 0 { // Only write out on match.
-				c.Info.TotalSourceReplaces += c.Info.CurrentMatches
-				c.Info.UpdatedFilePaths = append(c.Info.UpdatedFilePaths, path)
-				//log.Debug().Msgf("info.CurrentMatches: %d.  Writing updated file: %s", c.Info.CurrentMatches, path)
-				err = os.WriteFile(path, replaced, 0)
-				if err != nil {
-					return err
-				}
 			}
 		}
 		return nil
@@ -184,10 +212,27 @@ func Replace(c *Config) (err error) {
 	return err
 }
 
-// DirVersionedFiles returns all versioned files in  `directory` including
-// subdirectories. `directory` should not have trailing slash.  Includes dummy
-// files, e.g. "app.min.js?fv=00000000".  Returns paths relative to `directory`.
-func DirVersionedFiles(directory string) (fileVers []string, err error) {
+// genFileVer generates the fileVer (e.g.  app.min.js?fv=00000000 or
+// app?fv=00000000.min.js) from the bare file name (app.min.js) and digest (00000000...).
+// Input `digest` may be the shortened be the version (00000000) instead of the
+// whole 64 character digest.
+func genFileVer(bareFileName, digest string, c *Config) string {
+	if !c.MidVer {
+		// Not mid version, e.g. app.min.js?fv=00000000
+		return bareFileName + Delim + digest[:VersionSize]
+	} else {
+		// Mid version, e.g. app?fv=00000000.min.js
+		ext := filepath.Ext(bareFileName)
+		baseWithoutExt := bareFileName[:len(bareFileName)-len(ext)]
+		return baseWithoutExt + Delim + digest[:VersionSize] + ext
+	}
+}
+
+// ExistingVersionedFiles returns all existing versioned files in  `directory`
+// including dummies (e.g. "app.min.js?fv=00000000") and subdirectories.
+// `directory` should not have trailing slash.  Returns paths relative to
+// `directory`.
+func ExistingVersionedFiles(directory string) (fileVers []string, err error) {
 	var walk = func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -277,12 +322,11 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 	}
 
 	base := VerAnySizeRegexC.ReplaceAllString(filepath.Base(filePath), "")
+	fileVer := genFileVer(base, dig.String(), c)
 
-	// Create the version number. If exists, remove any existing version
-	// (including dummy version and/or duplicate versions in a single file name)
-	// from file name.
-	baseWithVersion := base + Delim + dig.String()[:VersionSize]
-
+	// If file exists, remove any existing version (including dummy version and/or
+	// duplicate versions in a single file name) from file name.
+	//
 	// Relative path from `src` (excluding src, base name). Starts with "/".
 	rDir := filepath.Dir(filePath)
 	if rDir == "." { // Sanitize filepath, which adds a "." on empty. 😞
@@ -290,17 +334,17 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 	}
 	rDir = strings.Replace(rDir, c.Src, "", 1)
 	distRDir := c.Dist + string(os.PathSeparator) + rDir
-	outFilePath = rDir + string(os.PathSeparator) + baseWithVersion
+	outFilePath = rDir + string(os.PathSeparator) + fileVer
 
 	if rDir == "" {
-		outFilePath = baseWithVersion
+		outFilePath = fileVer
 	} else {
 		//log.Debug().Msgf("creating relative dirs: %s", distRDir)
 		os.MkdirAll(distRDir, 0755)
 		if err != nil {
 			return "", err
 		}
-		outFilePath = rDir + string(os.PathSeparator) + baseWithVersion
+		outFilePath = rDir + string(os.PathSeparator) + fileVer
 	}
 	//log.Debug().Msgf("rDir: %s, outFilePath: %+v", rDir, outFilePath)
 
@@ -323,7 +367,7 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 	// for loop continues even after match, to search for and remove other errant
 	// versioned files.
 	for _, f := range files {
-		if !matchedExisting && f == baseWithVersion { // File is the current version.
+		if !matchedExisting && f == fileVer { // File is the current version.
 			matchedExisting = true
 			continue // Continue in case of other errant copies.
 		}
