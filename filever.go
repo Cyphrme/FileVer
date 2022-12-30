@@ -43,13 +43,15 @@ var HashAlg = coze.SHA256
 
 // Config holds the settings for operating the main FileVer functions.
 //
-//	Src   - source directory starting point.
-//	Dist  - destination directory.  Default: Output will be on one level.
-//	EndVer - End version format, e.g. `test.txt?fv=000` instead of "mid ver", `test.txt?fv=000`
+//	Src      - Source directory starting point.  Must be nil for SrcFiles.
+//	SrcFiles - Manually provided src files.  Will be set to Src's files if nil (default behavior).
+//	Dist     - destination directory.  Default: Output will be on one level.
+//	EndVer   - End version format, e.g. `test.txt?fv=000` instead of "mid ver", `test.txt?fv=000`
 type Config struct {
-	Src    string
-	Dist   string
-	EndVer bool
+	Src      string
+	SrcFiles []string
+	Dist     string
+	EndVer   bool
 
 	// Use Internally
 	Info *Info
@@ -60,11 +62,11 @@ type Info struct {
 	//`"test_1.js":"4WYoW0MN"``
 	PV map[string]string
 
-	// SAVR "Search All Versioned, Regex". Create the regex to match a file with
-	// all versions at once. This results in a large regex, but files do not need
-	// to be re-searched for each FileVer.  The downside is that a match matches
-	// all "versions", so the match still needs to be matched to a single version
-	// after this regex returns a match.
+	// SAVR "Search All Versioned, Regex". Regex that matches all filevers at
+	// once. This results in a large regex, but allows single pass searching for
+	// each file.  The downside is that a match matches all "versions", so the
+	// match still needs to be matched to a single version after this regex
+	// returns a match.
 	// Example of the resulting regex:
 	// `(app\.min\.js\?fv=[0-9A-Za-z_-]*)|(coze\.min\.js\?fv=[0-9A-Za-z_-]*)`
 	SAVR string
@@ -108,13 +110,15 @@ func Version(c *Config) (err error) {
 	c.Info = new(Info)
 	c.Info.PV = map[string]string{}
 
-	scrFilesPaths, err := ExistingVersionedFiles(c.Src)
-	if err != nil {
-		return err
+	if c.SrcFiles == nil {
+		c.SrcFiles, err = ExistingVersionedFiles(c.Src)
+		if err != nil {
+			return err
+		}
 	}
 
 	c.Info.VersionedFiles = []string{} // Files without paths.
-	for _, path := range scrFilesPaths {
+	for _, path := range c.SrcFiles {
 		file, err := FileToFileVerOutputDelete(path, c)
 		if err != nil {
 			return err
@@ -125,36 +129,6 @@ func Version(c *Config) (err error) {
 		c.Info.VersionedFiles = append(c.Info.VersionedFiles, file)
 	}
 	return nil
-}
-
-// genFileVer generates the fileVer (e.g.  app.min.js?fv=00000000 or
-// app?fv=00000000.min.js) from the bare file name (app.min.js) and digest (00000000...).
-// Input `digest` may be the shortened be the version (00000000) instead of the
-// whole 64 character digest.
-func genFileVer(bareFileName, digest string, c *Config) string {
-	if c.EndVer {
-		// Not mid version, e.g. app.min.js?fv=00000000
-		return bareFileName + Delim + digest[:VersionSize]
-	}
-	// Mid version, e.g. app?fv=00000000.min.js
-	// strings.Cut splits on first instance of char.  Resulting `ext` will be missing first "."
-	baseWithoutExt, ext, _ := strings.Cut(bareFileName, ".")
-	return baseWithoutExt + Delim + digest[:VersionSize] + "." + ext
-
-}
-
-// genFileVerRegex Returns the regex to find the versioned file encapsulated in
-// parentheses, e.g. `(subdir/test_3\?fv=[0-9A-Za-z_-]*.js)`.  Variable `file`
-// should be the bare relative file path.  E.g. `subdir/test_3.js` or
-// `test_1.js`.
-func genFileVerRegex(file string, c *Config) (regex string) {
-	if c.EndVer {
-		return "(" + regexp.QuoteMeta(file) + VerAnySizeRegex + ")"
-	}
-	// Mid version, e.g. app?fv=00000000.min.js
-	// strings.Cut splits on first instance of char.  Resulting `ext` will be missing first "."
-	baseWithoutExt, ext, _ := strings.Cut(file, ".")
-	return "(" + regexp.QuoteMeta(baseWithoutExt) + VerAnySizeRegex + "." + ext + ")"
 }
 
 // Replace updates all source file references to versioned files with the
@@ -178,17 +152,6 @@ func Replace(c *Config) (err error) {
 	}
 	//fmt.Printf("\n\nSAVR %s\n\n", c.Info.SAVR)
 	reg := regexp.MustCompile(c.Info.SAVR)
-
-	// 20221229 OLD
-	// Implements regexp.ReplaceFunc
-	// var PathedVersionedReplace = func(in []byte) []byte {
-	// 	c.Info.CurrentMatches++
-	// 	bare := VerAnySizeRegexC.ReplaceAllString(string(in), "") // get bare file name.
-	// 	path := filepath.Dir(c.Info.CurrentPath) + string(os.PathSeparator) + bare
-	// 	version := c.Info.PV[path]
-	// 	fmt.Printf("\n\nPathedVersionedReplace - match: %s, c.Info.CurrentPath: %s; bare: %s; path: %s; New Version: %s\n", in, c.Info.CurrentPath, bare, path, version)
-	// 	return []byte(bare + version)
-	// }
 
 	// Variable "in" is file name, without the relative subdirectory path.
 	var PathedVersionedReplace = func(in []byte) []byte {
@@ -233,6 +196,34 @@ func Replace(c *Config) (err error) {
 
 	err = filepath.WalkDir(c.Dist, walk)
 	return err
+}
+
+// genFileVer generates the fileVer (e.g. app.min.js?fv=0000 or
+// app?fv=0000.min.js) from the bare file name (app.min.js) and digest
+// (0000...). Input `digest` may be the shortened be the version (0000) instead
+// of the whole 64 character digest.
+func genFileVer(bareFileName, digest string, c *Config) string {
+	if c.EndVer {
+		// End version format, e.g. app.min.js?fv=00000000
+		return bareFileName + Delim + digest[:VersionSize]
+	}
+	// strings.Cut splits on first instance of char.  Resulting `ext` will be missing first "."
+	baseWithoutExt, ext, _ := strings.Cut(bareFileName, ".")
+	return baseWithoutExt + Delim + digest[:VersionSize] + "." + ext
+
+}
+
+// genFileVerRegex Returns the regex to find the versioned file encapsulated in
+// parentheses, e.g. `(subdir/test_3\?fv=[0-9A-Za-z_-]*.js)`.  Variable `file`
+// should be the bare relative file path.  E.g. `subdir/test_3.js` or
+// `test_1.js`.
+func genFileVerRegex(file string, c *Config) (regex string) {
+	if c.EndVer {
+		return "(" + regexp.QuoteMeta(file) + VerAnySizeRegex + ")"
+	}
+	// strings.Cut splits on first instance of char.  Resulting `ext` will be missing first "."
+	baseWithoutExt, ext, _ := strings.Cut(file, ".")
+	return "(" + regexp.QuoteMeta(baseWithoutExt) + VerAnySizeRegex + "." + ext + ")"
 }
 
 // CleanVersionFiles removes any versioned files recursively in the given path.
