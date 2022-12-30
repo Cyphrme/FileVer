@@ -50,7 +50,7 @@ A FileVer is the full file name with a file version.
 
 A FileVer may refer to a file with a dummy version, i.e. app.min.js?fv=00000000 is a FileVer.  
 
-### Vocab
+### Vocabulary
 - dist -"distribution": The destination directory.  
 - Versioned file: A file with a file version, e.g. app.min.js?fv=4mIbJJPq.
 - Delimitor:  The FileVer delimiter string is (by default) `?fv=`.  The ending
@@ -81,13 +81,12 @@ Directories `src` and `dist` may be named as desired.
 
 
 ## All source file imports must be relative to directory `dist`
-There were two options: 1. All files name had to be global or 2. path allows
-"duplicate" file names. 
+When contemplating the design, there were two designs considered: 
+  1. All files names had to be global or 
+  2. path allows "duplicate" file names. 
 
 To implement 2 easily, all imports in `dist` must be relative to directory
-`dist`.  
-
-Input `src` directory structure is preserved in `dist`.
+`dist`.  Input `src` directory structure is preserved in `dist`. There are many advantages to 2 over 1, and 2 is more unix-like, so design 2 was implemented.  
 
 
 ## Development Pipeline

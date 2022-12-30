@@ -4,23 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
-	"strings"
-	"testing"
 
 	"github.com/cyphrme/watch"
 )
 
 var dummyNoSrc = "test/dummy_no/src"
 var dummyNoDist = "test/dummy_no/dist"
-
 var dummySrc = "test/dummy/src"
 var dummyDist = "test/dummy/dist"
-
 var dummyMidSrc = "test/dummy_mid/src"
 var dummyMidDist = "test/dummy_mid/dist"
-
 var watchSrc = "test/watch/src"
 var watchDist = "test/watch/dist"
 
@@ -31,8 +25,22 @@ func Example_clean() {
 	// Clean done.
 }
 
+// Clean removes versioned files from dist.
 func clean() {
+	c := []string{
+		dummyNoDist,
+		dummyDist,
+		dummyMidDist,
+		watchDist,
+	}
 
+	for _, v := range c {
+		CleanVersionFiles(v)
+	}
+}
+
+// Completely delete all test dirs and recreate.
+func nukeAndRebuildTestDirs() {
 	c := []string{
 		dummyNoDist,
 		dummyDist,
@@ -51,7 +59,32 @@ func clean() {
 		if err != nil {
 			panic(err)
 		}
+
+		d1 := []byte("This file lives in dist and is not versioned.")
+		err = os.WriteFile(v+"/not_versioned_example.txt", d1, 0644)
+		if err != nil {
+			panic(err)
+		}
 	}
+}
+
+func Example_nuke() {
+	nukeAndRebuildTestDirs()
+	// Output:
+}
+
+func ExampleCleanVersionFiles() {
+	Example_dummy() // Generates files
+	CleanVersionFiles(dummyDist)
+	f, err := ListFilesInPath(dummyDist)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(f)
+	// Output:
+	// [test_1.js?fv=iwjsfpt6 test_2.js?fv=k4Ti_VfV test_4.js?fv=FS0yyWFi subdir/test_3.js?fv=HlNaJEAj]
+	// [not_versioned_example.txt]
 }
 
 func ExampleListFilesInPath() {
@@ -81,19 +114,20 @@ func ExampleExistingVersionedFiles() {
 	fmt.Println(files)
 
 	// Output:
-	//[test_1.js?fv=00000000 test_2.js?fv=00000000 test_folder/test_3.js?fv=00000000]
-	//[test_1?fv=00000000.js test_2?fv=00000000.js test_folder/test_3?fv=00000000.js]
+	//[subdir/test_3.js?fv=00000000 test_1.js?fv=00000000 test_2.js?fv=00000000 test_4.js?fv=00000000]
+	//[subdir/test_3?fv=00000000.js test_1?fv=00000000.js test_2?fv=00000000.js test_4?fv=00000000.js]
 }
 
 // Example_noDummy demonstrates "manually" enumerating files to be processes by
-// FileVer.
+// FileVer. // TODO replace appears to not be working.
 func Example_noDummy() {
 	clean()
 	c := &Config{Src: dummyNoSrc, Dist: dummyNoDist}
 	scrFiles := []string{
 		"test_1.js",
 		"test_2.js",
-		"test_folder/test_3.js",
+		"test_4.js",
+		"subdir/test_3.js",
 	}
 
 	files := []string{}
@@ -106,17 +140,17 @@ func Example_noDummy() {
 		files = append(files, file)
 	}
 
-	fmt.Println("Processed: " + strings.Join(files, ", "))
+	fmt.Printf("%s", files)
 	// Output:
-	// Processed: test_1.js?fv=4WYoW0MN, test_2.js?fv=zmoLIyPU, test_folder/test_3.js?fv=zmoLIyPU
+	// [test_1.js?fv=iwjsfpt6 test_2.js?fv=k4Ti_VfV test_4.js?fv=1M7qm-Pd subdir/test_3.js?fv=HlNaJEAj]
 }
 
 // Example_dummy takes input files from many directories (starting at
 // `/test/dummy/src`), outputs to a single dist directory  (`/test/dummy/dist`).
 // This is an example of a "global", unstructured dist.
-func Example_dummy() {
+func Example_dummy_end() {
 	clean()
-	c := &Config{Src: dummySrc, Dist: dummyDist}
+	c := &Config{Src: dummySrc, Dist: dummyDist, EndVer: true}
 	scrFiles, err := ExistingVersionedFiles(c.Src)
 	if err != nil {
 		panic(err)
@@ -136,30 +170,15 @@ func Example_dummy() {
 	//Replace(c)
 
 	// Output:
-	//[test_1.js?fv=4WYoW0MN test_2.js?fv=zmoLIyPU test_folder/test_3.js?fv=zmoLIyPU]
-}
-
-// Example_dummy takes input files from many directories (starting at
-// `/test/dummy/src`), outputs to a single dist directory  (`/test/dummy/dist`).
-// This is an example of a "global", unstructured dist.
-func Test_dummy(t *testing.T) {
-	clean()
-	c := &Config{Src: dummySrc, Dist: dummyDist}
-	Version(c)
-	fmt.Printf("Post Version config: %+v, \ninfo: %+v", c, c.Info)
-
-	Replace(c)
-
-	// Output:
-	//[test_1.js?fv=4WYoW0MN test_2.js?fv=zmoLIyPU test_folder/test_3.js?fv=zmoLIyPU]
+	//[subdir/test_3.js?fv=HlNaJEAj test_1.js?fv=iwjsfpt6 test_2.js?fv=k4Ti_VfV test_4.js?fv=liDycGy1]
 }
 
 // Example_mid_dummy takes input files from many directories (starting at
 // `/test/dummy_mid/src`), outputs to a single dist directory  (`/test/dummy_mid/dist`).
 // This is an example of a "global", unstructured dist.
-func Example_mid_dummy() {
+func Example_dummy() {
 	clean()
-	c := &Config{Src: dummyMidSrc, Dist: dummyMidDist, MidVer: true}
+	c := &Config{Src: dummyMidSrc, Dist: dummyMidDist}
 	scrFiles, err := ExistingVersionedFiles(c.Src)
 	if err != nil {
 		panic(err)
@@ -177,64 +196,98 @@ func Example_mid_dummy() {
 	fmt.Println(files)
 
 	// Output:
-	//[test_1?fv=jd2_eypN.js test_2?fv=1XdEl8NR.js test_folder/test_3?fv=1XdEl8NR.js]
+	//[test_1?fv=jd2_eypN.js test_2?fv=1XdEl8NR.js subdir/test_3?fv=1XdEl8NR.js]
 }
 
+// Example VersionReplace.  No mid ver.
+func ExampleVersionReplace_end() {
+	clean()
+
+	c := &Config{Src: dummySrc, Dist: dummyDist, EndVer: true}
+	err := VersionReplace(c)
+	if err != nil {
+		panic(err)
+	}
+
+	PrintPretty(c.Info)
+	// Print the first file to ensure contents updated with appropriate version.
+	PrintFile(dummyDist + "/" + c.Info.VersionedFiles[0])
+
+	// Output:
+	// {
+	// 	"PV": {
+	// 		"subdir/test_3.js": "gGkfoWxG",
+	// 		"test_1.js": "iwjsfpt6",
+	// 		"test_2.js": "k4Ti_VfV",
+	// 		"test_4.js": "PRrfCtOC"
+	// 	},
+	// 	"SAVR": "(subdir/test_3\\.js\\?fv=[0-9A-Za-z_-]*)|(test_1\\.js\\?fv=[0-9A-Za-z_-]*)|(test_2\\.js\\?fv=[0-9A-Za-z_-]*)|(test_4\\.js\\?fv=[0-9A-Za-z_-]*)",
+	// 	"VersionedFiles": [
+	// 		"subdir/test_3.js?fv=gGkfoWxG",
+	// 		"test_1.js?fv=iwjsfpt6",
+	// 		"test_2.js?fv=k4Ti_VfV",
+	// 		"test_4.js?fv=PRrfCtOC"
+	// 	],
+	// 	"TotalSourceReplaces": 8,
+	// 	"UpdatedFilePaths": [
+	// 		"test/dummy/dist/subdir/test_3.js?fv=gGkfoWxG",
+	// 		"test/dummy/dist/test_1.js?fv=iwjsfpt6",
+	// 		"test/dummy/dist/test_2.js?fv=k4Ti_VfV",
+	// 		"test/dummy/dist/test_4.js?fv=PRrfCtOC"
+	// 	]
+	// }
+	// File test/dummy/dist/subdir/test_3.js?fv=gGkfoWxG:
+	// ////////////////
+	// import * as test1 from '../test_1.js?fv=iwjsfpt6';
+	// import * as test2 from '../test_2.js?fv=k4Ti_VfV';
+	// ////////////////
+}
+
+// Example VersionReplace with mid version.
 func ExampleVersionReplace() {
 	clean()
 
-	c := &Config{Src: dummySrc, Dist: dummyDist}
+	c := &Config{Src: dummyMidSrc, Dist: dummyMidDist}
 	err := VersionReplace(c)
 	if err != nil {
 		panic(err)
 	}
 
 	PrintPretty(c.Info)
-	PrintFile("test/dummy/dist/test_1.js?fv=YNCUu8I7")
+	PrintFile(dummyMidDist + "/" + c.Info.VersionedFiles[0])
 
 	// Output:
-	// Replace Config  &{Src:test/dummy/src Dist:test/dummy/dist MidVer:false Info:0xc000132700} Info: &{TotalSourceReplaces:0 UpdatedFilePaths:[] SAVR: PV:map[test_1.js:?fv=4WYoW0MN test_2.js:?fv=zmoLIyPU test_folder/test_3.js:?fv=zmoLIyPU] VersionedFiles:[test_1.js?fv=4WYoW0MN test_2.js?fv=zmoLIyPU test_folder/test_3.js?fv=zmoLIyPU] CurrentPath: CurrentMatches:0}{
-	// 	"TotalSourceReplaces": 3,
-	// 	"UpdatedFilePaths": [
-	// 		"test/dummy/dist/test_1.js?fv=4WYoW0MN",
-	// 		"test/dummy/dist/test_2.js?fv=zmoLIyPU",
-	// 		"test/dummy/dist/test_folder/test_3.js?fv=zmoLIyPU"
-	// 	],
-	// 	"SAVR": "(test_1\\.js\\?fv=[0-9A-Za-z_-]*)|(test_2\\.js\\?fv=[0-9A-Za-z_-]*)|(test_folder/test_3\\.js\\?fv=[0-9A-Za-z_-]*)",
+	// {
 	// 	"PV": {
-	// 		"test_1.js": "?fv=4WYoW0MN",
-	// 		"test_2.js": "?fv=zmoLIyPU",
-	// 		"test_folder/test_3.js": "?fv=zmoLIyPU"
+	// 		"subdir/test_3.js": "JPWlGq2g",
+	// 		"test_1.js": "vk-N-Yhv",
+	// 		"test_2.js": "HNWQ4g9G",
+	// 		"test_4.js": "Dgc1dsET"
 	// 	},
+	// 	"SAVR": "(subdir/test_3\\?fv=[0-9A-Za-z_-]*.js)|(test_1\\?fv=[0-9A-Za-z_-]*.js)|(test_2\\?fv=[0-9A-Za-z_-]*.js)|(test_4\\?fv=[0-9A-Za-z_-]*.js)",
 	// 	"VersionedFiles": [
-	// 		"test_1.js?fv=4WYoW0MN",
-	// 		"test_2.js?fv=zmoLIyPU",
-	// 		"test_folder/test_3.js?fv=zmoLIyPU"
+	// 		"subdir/test_3?fv=JPWlGq2g.js",
+	// 		"test_1?fv=vk-N-Yhv.js",
+	// 		"test_2?fv=HNWQ4g9G.js",
+	// 		"test_4?fv=Dgc1dsET.js"
+	// 	],
+	// 	"TotalSourceReplaces": 8,
+	// 	"UpdatedFilePaths": [
+	// 		"test/dummy_mid/dist/subdir/test_3?fv=JPWlGq2g.js",
+	// 		"test/dummy_mid/dist/test_1?fv=vk-N-Yhv.js",
+	// 		"test/dummy_mid/dist/test_2?fv=HNWQ4g9G.js",
+	// 		"test/dummy_mid/dist/test_4?fv=Dgc1dsET.js"
 	// 	]
 	// }
-	//
-	// File:
+	// File test/dummy_mid/dist/subdir/test_3?fv=JPWlGq2g.js:
 	// ////////////////
-	// "use strict";
-	//
-	// import * as test2 from './test_2.js?fv=zmoLIyPU';
+	// import * as test1 from './test_1?fv=vk-N-Yhv.js';
+	// import * as test2 from './test_2?fv=HNWQ4g9G.js';
 	// ////////////////
 }
 
-func TestVersionReplace(t *testing.T) {
-	clean()
-
-	c := &Config{Src: dummySrc, Dist: dummyDist}
-	err := VersionReplace(c)
-	if err != nil {
-		panic(err)
-	}
-
-	PrintPretty(c.Info)
-	PrintFile("test/dummy/dist/test_1.js?fv=YNCUu8I7")
-}
-
-// This example demonstrates using FileVer with the program "watch".
+// Example_watchVersionAndReplace demonstrates using FileVer with the external
+// program "watch". Uses the "mid version" format.
 func Example_watchVersionAndReplace() {
 	clean()
 
@@ -253,35 +306,31 @@ func Example_watchVersionAndReplace() {
 		panic(err)
 	}
 
-	// Pretty Print
-	json, err := json.MarshalIndent(c.Info, "", "\t")
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	fmt.Println(string(json))
+	PrintPretty(c.Info)
+	PrintFile(watchDist + "/" + c.Info.VersionedFiles[0])
 
 	// Output:
-	//Flag `daemon` set to false.  Running commands in config and exiting.
+	// Flag `daemon` set to false.  Running commands in config and exiting.
 	// {
+	// 	"PV": {
+	// 		"subdir/test_3.js": "w34ZX0Lq",
+	// 		"test_1.min.js": "nVqEy2SO",
+	// 		"test_1.min.js.map": "Qk-Y21_2",
+	// 		"test_2.js": "w34ZX0Lq"
+	// 	},
+	// 	"SAVR": "(subdir/test_3\\.js\\?fv=[0-9A-Za-z_-]*)|(test_1\\.min\\.js\\.map\\?fv=[0-9A-Za-z_-]*)|(test_1\\.min\\.js\\?fv=[0-9A-Za-z_-]*)|(test_2\\.js\\?fv=[0-9A-Za-z_-]*)",
+	// 	"VersionedFiles": [
+	// 		"subdir/test_3.js?fv=w34ZX0Lq",
+	// 		"test_1.min.js.map?fv=Qk-Y21_2",
+	// 		"test_1.min.js?fv=nVqEy2SO",
+	// 		"test_2.js?fv=w34ZX0Lq"
+	// 	],
 	// 	"TotalSourceReplaces": 5,
 	// 	"UpdatedFilePaths": [
-	// 		"test/watch/dist/test_1.min.js.map?fv=820OsC4y",
+	// 		"test/watch/dist/subdir/test_3.js?fv=w34ZX0Lq",
+	// 		"test/watch/dist/test_1.min.js.map?fv=Qk-Y21_2",
 	// 		"test/watch/dist/test_1.min.js?fv=nVqEy2SO",
-	// 		"test/watch/dist/test_2.js?fv=Gv-m9hRr",
-	// 		"test/watch/dist/test_folder/test_3.js?fv=Gv-m9hRr"
-	// 	],
-	// 	"SAVR": "(test_1\\.min\\.js\\.map\\?fv=[0-9A-Za-z_-]*)|(test_1\\.min\\.js\\?fv=[0-9A-Za-z_-]*)|(test_2\\.js\\?fv=[0-9A-Za-z_-]*)|(test_folder/test_3\\.js\\?fv=[0-9A-Za-z_-]*)",
-	// 	"PV": {
-	// 		"test_1.min.js": "?fv=nVqEy2SO",
-	// 		"test_1.min.js.map": "?fv=820OsC4y",
-	// 		"test_2.js": "?fv=Gv-m9hRr",
-	// 		"test_folder/test_3.js": "?fv=Gv-m9hRr"
-	// 	},
-	// 	"VersionedFiles": [
-	// 		"test_1.min.js.map?fv=820OsC4y",
-	// 		"test_1.min.js?fv=nVqEy2SO",
-	// 		"test_2.js?fv=Gv-m9hRr",
-	// 		"test_folder/test_3.js?fv=Gv-m9hRr"
+	// 		"test/watch/dist/test_2.js?fv=w34ZX0Lq"
 	// 	]
 	// }
 
@@ -304,7 +353,7 @@ func PrintFile(filePath string) {
 
 	b, err := ioutil.ReadAll(file)
 
-	fmt.Printf("\nFile:\n////////////////\n%s\n////////////////", b)
+	fmt.Printf("File %s:\n////////////////\n%s\n////////////////\n", filePath, b)
 
 }
 
