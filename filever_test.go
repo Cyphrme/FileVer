@@ -10,6 +10,9 @@ import (
 	"github.com/cyphrme/watch"
 )
 
+// Each test that writes files has its own directory, so test outputs can be
+// pushed to git and used in explanations.  Init calls clean before executing
+// tests.
 var dummySrc = "test/dummy/src"
 var dummyDist = "test/dummy/dist"
 var dummyEndSrc = "test/dummy_end/src"
@@ -18,11 +21,15 @@ var dummyNoSrc = "test/dummy_no/src"
 var dummyNoDist = "test/dummy_no/dist"
 var watchSrc = "test/watch/src"
 var watchDist = "test/watch/dist"
+var cleanDist = "test/clean" //For cleaning example. Uses dummySrc as src.
+
+func init() {
+	clean()
+}
 
 // Example VersionReplace with mid version with "dummy" input files.
 // go test -run '^ExampleVersionReplace$'
 func ExampleVersionReplace() {
-	clean()
 	c := &Config{Src: dummySrc, Dist: dummyDist}
 	err := VersionReplace(c)
 	if err != nil {
@@ -64,8 +71,6 @@ func ExampleVersionReplace() {
 
 // Example VersionReplace using end ver format and dummy file inputs.
 func ExampleVersionReplace_end() {
-	clean()
-
 	c := &Config{Src: dummyEndSrc, Dist: dummyEndDist, EndVer: true}
 	err := VersionReplace(c)
 	if err != nil {
@@ -109,8 +114,6 @@ func ExampleVersionReplace_end() {
 // Example_watchVersionAndReplace demonstrates using FileVer with the external
 // program "watch". Uses the "mid version" format.
 func Example_watchVersionAndReplace() {
-	clean()
-
 	// Set up and test with Watch. Normally (outside of testing) watch must call
 	// filever.  For testing, filever will call watch so that `go test` works.
 	// Also see notes in `watch_src.sh`
@@ -167,7 +170,6 @@ func Example_watchVersionAndReplace() {
 // processes by FileVer, aka it does not use dummy file inputs. Does not do
 // Replace().
 func Example_noDummy() {
-	clean()
 	c := &Config{
 		Src:  dummyNoSrc,
 		Dist: dummyNoDist,
@@ -222,15 +224,14 @@ func ExampleExistingVersionedFiles() {
 
 func ExampleCleanVersionFiles() {
 	// Generate test files.
-	clean()
-	c := &Config{Src: dummySrc, Dist: dummyDist}
+	c := &Config{Src: dummySrc, Dist: cleanDist}
 	err := VersionReplace(c)
 	if err != nil {
 		panic(err)
 	}
 	// Clean out generate test files.
-	CleanVersionFiles(dummyEndDist)
-	f, err := ListFilesInPath(dummyEndDist)
+	CleanVersionFiles(cleanDist)
+	f, err := ListFilesInPath(cleanDist)
 	if err != nil {
 		panic(err)
 	}
@@ -259,6 +260,7 @@ func clean() {
 		dummyEndDist,
 		dummyNoDist,
 		watchDist,
+		cleanDist,
 	}
 
 	for _, v := range c {
@@ -273,6 +275,7 @@ func nukeAndRebuildTestDirs() {
 		dummyEndDist,
 		dummyNoDist,
 		watchDist,
+		cleanDist,
 	}
 
 	for _, v := range c {
