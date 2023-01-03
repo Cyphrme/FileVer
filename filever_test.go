@@ -21,7 +21,7 @@ var dummyNoSrc = "test/dummy_no/src"
 var dummyNoDist = "test/dummy_no/dist"
 var watchSrc = "test/watch/src"
 var watchDist = "test/watch/dist"
-var cleanDist = "test/clean" //For cleaning example. Uses dummySrc as src.
+var cleanDist = "test/clean" // For ExampleCleanVersionFiles. Uses dummySrc as src.
 
 func init() {
 	clean()
@@ -36,37 +36,66 @@ func ExampleVersionReplace() {
 		panic(err)
 	}
 
-	PrintPretty(c.Info)
+	PrintPretty(c)
 	PrintFile(dummyDist + "/" + c.Info.VersionedFiles[0])
 
 	// Output:
 	// {
-	// 	"PV": {
-	// 		"subdir/test_3.js": "JPWlGq2g",
-	// 		"test_1.js": "vk-N-Yhv",
-	// 		"test_2.js": "HNWQ4g9G",
-	// 		"test_4.js": "Dgc1dsET"
-	// 	},
-	// 	"SAVR": "(subdir/test_3\\?fv=[0-9A-Za-z_-]*.js)|(test_1\\?fv=[0-9A-Za-z_-]*.js)|(test_2\\?fv=[0-9A-Za-z_-]*.js)|(test_4\\?fv=[0-9A-Za-z_-]*.js)",
-	// 	"VersionedFiles": [
-	// 		"subdir/test_3?fv=JPWlGq2g.js",
-	// 		"test_1?fv=vk-N-Yhv.js",
-	// 		"test_2?fv=HNWQ4g9G.js",
-	// 		"test_4?fv=Dgc1dsET.js"
+	// 	"Src": "test/dummy/src",
+	// 	"SrcFiles": [
+	// 		"subdir/test_3?fv=00000000.js",
+	// 		"test_1?fv=00000000.js",
+	// 		"test_2?fv=00000000.js",
+	// 		"test_4?fv=00000000.js"
 	// 	],
-	// 	"TotalSourceReplaces": 8,
-	// 	"UpdatedFilePaths": [
-	// 		"test/dummy/dist/subdir/test_3?fv=JPWlGq2g.js",
-	// 		"test/dummy/dist/test_1?fv=vk-N-Yhv.js",
-	// 		"test/dummy/dist/test_2?fv=HNWQ4g9G.js",
-	// 		"test/dummy/dist/test_4?fv=Dgc1dsET.js"
-	// 	]
+	// 	"Dist": "test/dummy/dist",
+	// 	"EndVer": false,
+	// 	"Info": {
+	// 		"PV": {
+	// 			"subdir/test_3.js": "JPWlGq2g",
+	// 			"test_1.js": "vk-N-Yhv",
+	// 			"test_2.js": "HNWQ4g9G",
+	// 			"test_4.js": "Dgc1dsET"
+	// 		},
+	// 		"SAVR": "(subdir/test_3\\?fv=[0-9A-Za-z_-]*.js)|(test_1\\?fv=[0-9A-Za-z_-]*.js)|(test_2\\?fv=[0-9A-Za-z_-]*.js)|(test_4\\?fv=[0-9A-Za-z_-]*.js)",
+	// 		"VersionedFiles": [
+	// 			"subdir/test_3?fv=JPWlGq2g.js",
+	// 			"test_1?fv=vk-N-Yhv.js",
+	// 			"test_2?fv=HNWQ4g9G.js",
+	// 			"test_4?fv=Dgc1dsET.js"
+	// 		],
+	// 		"TotalSourceReplaces": 8,
+	// 		"UpdatedFilePaths": [
+	// 			"test/dummy/dist/subdir/test_3?fv=JPWlGq2g.js",
+	// 			"test/dummy/dist/test_1?fv=vk-N-Yhv.js",
+	// 			"test/dummy/dist/test_2?fv=HNWQ4g9G.js",
+	// 			"test/dummy/dist/test_4?fv=Dgc1dsET.js"
+	// 		]
+	// 	}
 	// }
 	// File test/dummy/dist/subdir/test_3?fv=JPWlGq2g.js:
 	// ////////////////
 	// import * as test1 from './test_1?fv=vk-N-Yhv.js';
 	// import * as test2 from './test_2?fv=HNWQ4g9G.js';
 	// ////////////////
+}
+
+func ExamplePathParts() {
+	fmt.Println(PathParts("..subdir/test_5?fv=wwjNHrIw.js"))
+	// Output:
+	// ..subdir/ test_5?fv=wwjNHrIw.js
+}
+
+func TestVersionReplace(t *testing.T) {
+	c := &Config{Src: dummySrc, Dist: dummyDist}
+	err := VersionReplace(c)
+	if err != nil {
+		panic(err)
+	}
+
+	PrintPretty(c)
+	PrintFile(dummyDist + "/" + c.Info.VersionedFiles[0])
+
 }
 
 // Example VersionReplace using end ver format and dummy file inputs.
@@ -129,41 +158,54 @@ func Example_watchVersionAndReplace() {
 		panic(err)
 	}
 
-	PrintPretty(c.Info)
+	PrintPretty(c)
 	PrintFile(watchDist + "/" + c.Info.VersionedFiles[0])
 
 	// Output:
 	// Flag `daemon` set to false.  Running commands in config and exiting.
 	// {
-	// 	"PV": {
-	// 		"subdir/test_3.js": "JPWlGq2g",
-	// 		"test_1.min.js": "QCdhFObN",
-	// 		"test_1.min.js.map": "iBbcDWoU",
-	// 		"test_2.js": "mighoZca",
-	// 		"test_4.js": "BRW8FEPq"
-	// 	},
-	// 	"SAVR": "(subdir/test_3\\?fv=[0-9A-Za-z_-]*.js)|(test_1\\?fv=[0-9A-Za-z_-]*.min.js)|(test_1\\?fv=[0-9A-Za-z_-]*.min.js.map)|(test_2\\?fv=[0-9A-Za-z_-]*.js)|(test_4\\?fv=[0-9A-Za-z_-]*.js)",
-	// 	"VersionedFiles": [
-	// 		"subdir/test_3?fv=JPWlGq2g.js",
-	// 		"test_1?fv=QCdhFObN.min.js",
-	// 		"test_1?fv=iBbcDWoU.min.js.map",
-	// 		"test_2?fv=mighoZca.js",
-	// 		"test_4?fv=BRW8FEPq.js"
+	// 	"Src": "test/watch/src",
+	// 	"SrcFiles": [
+	// 		"subdir/test_3?fv=00000000.js",
+	// 		"test_1?fv=00000000.min.js",
+	// 		"test_1?fv=00000000.min.js.map",
+	// 		"test_2?fv=00000000.js",
+	// 		"test_4?fv=00000000.js"
 	// 	],
-	// 	"TotalSourceReplaces": 8,
-	// 	"UpdatedFilePaths": [
-	// 		"test/watch/dist/subdir/test_3?fv=JPWlGq2g.js",
-	// 		"test/watch/dist/test_1?fv=QCdhFObN.min.js",
-	// 		"test/watch/dist/test_1?fv=iBbcDWoU.min.js.map",
-	// 		"test/watch/dist/test_2?fv=mighoZca.js",
-	// 		"test/watch/dist/test_4?fv=BRW8FEPq.js"
-	// 	]
+	// 	"Dist": "test/watch/dist",
+	// 	"EndVer": false,
+	// 	"Info": {
+	// 		"PV": {
+	// 			"subdir/test_3.js": "IpsYY052",
+	// 			"test_1.min.js": "QCdhFObN",
+	// 			"test_1.min.js.map": "iBbcDWoU",
+	// 			"test_2.js": "mighoZca",
+	// 			"test_4.js": "BRW8FEPq"
+	// 		},
+	// 		"SAVR": "(subdir/test_3\\?fv=[0-9A-Za-z_-]*.js)|(test_1\\?fv=[0-9A-Za-z_-]*.min.js)|(test_1\\?fv=[0-9A-Za-z_-]*.min.js.map)|(test_2\\?fv=[0-9A-Za-z_-]*.js)|(test_4\\?fv=[0-9A-Za-z_-]*.js)",
+	// 		"VersionedFiles": [
+	// 			"subdir/test_3?fv=IpsYY052.js",
+	// 			"test_1?fv=QCdhFObN.min.js",
+	// 			"test_1?fv=iBbcDWoU.min.js.map",
+	// 			"test_2?fv=mighoZca.js",
+	// 			"test_4?fv=BRW8FEPq.js"
+	// 		],
+	// 		"TotalSourceReplaces": 9,
+	// 		"UpdatedFilePaths": [
+	// 			"test/watch/dist/subdir/test_3?fv=IpsYY052.js",
+	// 			"test/watch/dist/test_1?fv=QCdhFObN.min.js",
+	// 			"test/watch/dist/test_1?fv=iBbcDWoU.min.js.map",
+	// 			"test/watch/dist/test_2?fv=mighoZca.js",
+	// 			"test/watch/dist/test_4?fv=BRW8FEPq.js"
+	// 		]
+	// 	}
 	// }
-	// File test/watch/dist/subdir/test_3?fv=JPWlGq2g.js:
+	// File test/watch/dist/subdir/test_3?fv=IpsYY052.js:
 	// ////////////////
-	// import * as test1 from './test_1?fv=00000000.js';
-	// import * as test2 from './test_2?fv=mighoZca.js';
+	// import * as test1 from '../test_1?fv=QCdhFObN.min.js';
+	// import * as test2 from '../test_2?fv=mighoZca.js';
 	// ////////////////
+
 }
 
 // Example_noDummy demonstrates inputting "manually" enumerated files to be
@@ -247,12 +289,6 @@ func Test_clean(t *testing.T) {
 	clean()
 }
 
-func Test__nuke(t *testing.T) {
-	nukeAndRebuildTestDirs()
-}
-
-// Helper Functions
-
 // Clean removes versioned files from dist.
 func clean() {
 	c := []string{
@@ -266,6 +302,10 @@ func clean() {
 	for _, v := range c {
 		CleanVersionFiles(v)
 	}
+}
+
+func Test__nuke(t *testing.T) {
+	nukeAndRebuildTestDirs()
 }
 
 // Completely delete all test dirs and recreate.

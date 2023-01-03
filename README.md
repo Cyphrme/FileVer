@@ -69,7 +69,7 @@ your_directory
   ⎿ src
   ⎿ dist
 ```
-
+Input `src` directory structure is preserved in `dist`.
 FileVer will version files in `src`, output to `dist`, and perform Replace() in
 dist. FileVer by default recreates the directory structure of `src` into `dist`.
 If this is not desired, see examples for "manual" versioning.  
@@ -78,15 +78,6 @@ Files that are not concerned with file versioning should be placed directly in
 `dist`.  
 
 Directories `src` and `dist` may be named as desired.  
-
-
-## All source file imports must be relative to directory `dist`
-When contemplating the design, there were two designs considered: 
-  1. All files names had to be global or 
-  2. path allows "duplicate" file names. 
-
-To implement 2 easily, all imports in `dist` must be relative to directory
-`dist`.  Input `src` directory structure is preserved in `dist`. There are many advantages to 2 over 1, and 2 is more unix-like, so design 2 was implemented.  
 
 
 ## Development Pipeline
@@ -134,6 +125,50 @@ re-zeroed.  FileVer design assumes all Versioned file imports are zero'd.
 If not wanting to use dummy files, each to-be-versioned file must be
 individually enumerated.  See `Example_noDummy()` for a demonstration. Replace()
 will still be needed to update references in `dist`.
+
+## All source file imports must be relative to root directory 
+When contemplating the design, there were two designs considered: 
+  1. All files names had to be global unique or 
+  2. Use paths for namespacing.  
+	
+The second option allows "duplicate" file names using path as a namespace, and
+is more Unix-link.  There are many advantages to 2 over 1, so design 2 was
+implemented.  This also allows the SAVR regex to be global, instead of needing
+to generate a SAVR for each subdirectory.  
+
+To implement 2 easily, all imports in `dist` must be relative to directory
+`dist`.  
+
+For example, if in subdirectory named "subdir", imports must be relative to the root, e.g. 
+
+'../subdir/test_3?fv=CX_w_yNh.js';
+
+and not
+
+'./test_3?fv=00000000.js'
+
+ 
+#### Matching problem if not relative to root
+
+Given the files 
+
+```
+test_3.js
+subdir/test_3.js
+```
+
+Although these are easy to match in root, there is not good way to match a
+secondary SAVR from `subdir`.  There is no good way to write a regex to match
+the correct file.  
+
+```
+'../test_3.js';
+'./test_3.js';
+```
+
+Any regex constrain would put restrictions on the syntax of the language itself.
+We want FileVer to be syntax agnostic, other than Unix pathing which is widely
+supported.  Including relative root significantly simplifies.  
 
 ## Update Recursion
 The suggested version pipeline uses an input and output directory in order to

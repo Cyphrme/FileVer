@@ -1,5 +1,0 @@
-import * as test1 from './test_1.js?fv=iwjsfpt6';
-import * as test2 from './test_2.js?fv=k4Ti_VfV';
-import * as test3 from './subdir/test_3.js?fv=gGkfoWxG';
-
-// Comments referring to './test_1.js?fv=iwjsfpt6' should be updated as well. 
