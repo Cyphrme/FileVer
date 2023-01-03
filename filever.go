@@ -72,7 +72,7 @@ type Info struct {
 	// SAVR needs to be regenerated for each subdirectory.
 	// key: current directory with root being "" and no preceding `/`.  E.g. `subdir/subdir2`
 	// Value: current directory SAVR.
-	SAVR map[string]string
+	SAVR string
 
 	// Versioned files (relatively pathed to c.Dist).  Generated when calling
 	// `Version()`.  Used by `Replace()` to know what files are versioned.
@@ -136,73 +136,25 @@ func Version(c *Config) (err error) {
 	return nil
 }
 
-// Generate SAVR for the current dir
-func genSAVRForCurrentPath(c *Config) {
-	fmt.Printf("genSAVRForCurrentPath %s, info: %+v\n", c.Info.CurrentPath, c.Info)
-
-	pDepth := strings.Count(c.Info.CurrentPath, string(filepath.Separator))
-
-	savr := ""
-	bookEnd := false
-	for _, k := range c.Info.VersionedFiles {
-		fDepth := strings.Count(k, string(filepath.Separator))
-		fmt.Printf("k: %s, Path Depth: %d  File Depth: %d\n\n", k, pDepth, fDepth)
-
-		nv := VerAnySizeRegexC.ReplaceAllString(k, "") // get bare file name without version.
-		nv = strings.ReplaceAll(nv, c.Dist, "")        // Remove dist (imports are relative to dist).
-
-		for pDepth > fDepth { // Prepend relative parent if needed.  e.g. `../test_1`
-			_, b := PathParts(nv)
-			nv = ".." + string(filepath.Separator) + b
-			fDepth++
-		}
-
-		// remove the relative path so imports do not need to be root relative.
-		// e.g.  `subdir/test_3.js` should be just `test_3.js` in this subdir.
-		for fDepth > 0 {
-			// TODO
-			// strings.Replace()
-			break
-		}
-
-		if bookEnd { // Fencepost
-			savr += "|"
-		} else {
-			bookEnd = true
-		}
-
-		savr += genFileVerRegex(nv, c)
-	}
-	fmt.Printf("genSAVR SAVR %s\n", savr)
-	c.Info.SAVR[c.Info.CurrentPath] = savr
-}
-
 // Replace updates all source file references to versioned files with the
 // current version. c.Info.PV and c.Info.VersionedFiles must be set correctly.
 func Replace(c *Config) (err error) {
-	fmt.Printf("\nReplace Config  %+v Info: %+v\n", c, c.Info)
+	//fmt.Printf("\nReplace Config  %+v Info: %+v\n", c, c.Info)
 	if c.Info == nil {
 		return fmt.Errorf("c.Info must be set.")
 	}
-
-	c.Info.SAVR = map[string]string{} // Reset SAVR in case it is set.  Will be regenerated while walking.
+	genSAVR(c)
+	reg := regexp.MustCompile(c.Info.SAVR)
 
 	// PathedVersionedReplace is called on each match.  Input is the matched string.
 	// Variable "in" is file name, without the relative subdirectory path.
 	var PathedVersionedReplace = func(in []byte) []byte {
-		fmt.Printf("PathedVersionedReplace - match: %s\n", in)
+		//fmt.Printf("PathedVersionedReplace - match: %s\n", in)
 		c.Info.CurrentMatches++
-
-		// TODO remove relative parents and add back in subdir.
-		ins := strings.ReplaceAll(string(in), "../", "")
-		//ins = c.Info.CurrentPath + "/" + ins
-
-		fmt.Printf("PathedVersionedReplace - ins: %s\n", ins)
-
 		// Match will include version.  Get bare file name without versioning.
-		bare := VerAnySizeRegexC.ReplaceAllString(ins, "")
+		bare := VerAnySizeRegexC.ReplaceAllString(string(in), "")
 		version := c.Info.PV[bare]
-		fmt.Printf("bare: %s version: %s \n", bare, version)
+		//fmt.Printf("bare: %s version: %s \n", bare, version)
 		return []byte(genFileVer(bare, version, c))
 	}
 
@@ -212,23 +164,14 @@ func Replace(c *Config) (err error) {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("\nWalking path: %s\n", path)
+		//fmt.Printf("\nWalking path: %s\n", path)
 
 		if d.IsDir() {
-			if c.Info.CurrentPath != c.Dist {
-				c.Info.CurrentPath = strings.TrimPrefix(path, c.Dist)
-			}
-			if c.Info.CurrentPath != "" { // removing begining "/"
-				c.Info.CurrentPath = strings.TrimPrefix(c.Info.CurrentPath, string(filepath.Separator))
-			}
-			genSAVRForCurrentPath(c)
 			return nil
 		}
 		c.Info.CurrentMatches = 0
-		// fmt.Printf("\n\nSAVR %s\n\n", c.Info.SAVR)
-		reg := regexp.MustCompile(c.Info.SAVR[c.Info.CurrentPath])
 
-		fmt.Printf("walk - path: %s; d: %+v, c.Info %+v\n", path, d, c.Info)
+		//fmt.Printf("walk - path: %s; d: %+v, c.Info %+v\n", path, d, c.Info)
 		read, err := os.ReadFile(path)
 		if err != nil {
 			return err
@@ -251,6 +194,25 @@ func Replace(c *Config) (err error) {
 	return err
 }
 
+// Generate SAVR.  e.g.
+// (subdir/test_3\\?fv=[0-9A-Za-z_-]*.js)|(test_1\\?fv=[0-9A-Za-z_-]*.js)
+func genSAVR(c *Config) {
+	c.Info.SAVR = ""
+	bookEnd := false
+	for _, k := range c.Info.VersionedFiles {
+		nv := VerAnySizeRegexC.ReplaceAllString(k, "") // get bare file name without version.
+		nv = strings.ReplaceAll(nv, c.Dist, "")        // Remove dist (imports are relative to dist).
+
+		if bookEnd { // Fencepost
+			c.Info.SAVR += "|"
+		} else {
+			bookEnd = true
+		}
+
+		c.Info.SAVR += genFileVerRegex(nv, c)
+	}
+}
+
 // genFileVer generates the fileVer (e.g. app.min.js?fv=0000 or
 // app?fv=0000.min.js) from the bare relative file name (`app.min.js` or
 // `subdir/app.min.js`) and digest (0000...). Input `digest` may be the
@@ -265,7 +227,7 @@ func genFileVer(file, digest string, c *Config) string {
 	}
 	// strings.Cut splits on first instance of char.  Resulting `ext` will be missing first "."
 	baseWithoutExt, ext, _ := strings.Cut(file, ".")
-	fmt.Printf("genFileVer:%s, %s \n", baseWithoutExt, ext)
+	//fmt.Printf("genFileVer:%s, %s \n", baseWithoutExt, ext)
 	fv := baseWithoutExt + Delim + digest[:VersionSize] + "." + ext
 	return fv
 

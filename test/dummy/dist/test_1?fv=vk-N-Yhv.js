@@ -1,1 +1,0 @@
-import * as test2 from './test_2?fv=HNWQ4g9G.js';

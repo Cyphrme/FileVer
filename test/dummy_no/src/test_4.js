@@ -1,1 +1,0 @@
-import * as test3 from './subdir/test_3?fv=00000000.js';

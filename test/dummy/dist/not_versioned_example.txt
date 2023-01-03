@@ -1,1 +1,1 @@
-This file lives in dist and is not versioned.
+This example file exists in `dist` directory and is not versioned.
