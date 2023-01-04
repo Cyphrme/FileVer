@@ -121,17 +121,51 @@ func Example_watchVersionAndReplace() {
 	if err != nil {
 		panic(err)
 	}
-	// PrintPretty(c)
+	PrintPretty(c)
 	PrintFile(watchDist + "/" + c.Info.VersionedFiles[0])
 
 	// Output:
 	// Flag `daemon` set to false.  Running commands in config and exiting.
+	// {
+	// 	"Src": "test/watch/src",
+	// 	"SrcFiles": [
+	// 		"subdir/test_3?fv=00000000.js",
+	// 		"subdir/test_4?fv=00000000.js",
+	// 		"test_1?fv=00000000.min.js",
+	// 		"test_2?fv=00000000.js"
+	// 	],
+	// 	"Dist": "test/watch/dist",
+	// 	"EndVer": false,
+	// 	"Info": {
+	// 		"PV": {
+	// 			"subdir/test_3.js": "fGF8m_Po",
+	// 			"subdir/test_4.js": "NszgzyIB",
+	// 			"test_1.min.js": "SgfqvMD3",
+	// 			"test_2.js": "7XyeFLlY"
+	// 		},
+	// 		"SAVR": "(subdir/test_3\\?fv=[0-9A-Za-z_-]*.js)|(subdir/test_4\\?fv=[0-9A-Za-z_-]*.js)|(test_1\\?fv=[0-9A-Za-z_-]*.min.js)|(test_2\\?fv=[0-9A-Za-z_-]*.js)",
+	// 		"VersionedFiles": [
+	// 			"subdir/test_3?fv=fGF8m_Po.js",
+	// 			"subdir/test_4?fv=NszgzyIB.js",
+	// 			"test_1?fv=SgfqvMD3.min.js",
+	// 			"test_2?fv=7XyeFLlY.js"
+	// 		],
+	// 		"TotalSourceReplaces": 19,
+	// 		"UpdatedFilePaths": [
+	// 			"test/watch/dist/subdir/test_3?fv=fGF8m_Po.js",
+	// 			"test/watch/dist/subdir/test_4?fv=NszgzyIB.js",
+	// 			"test/watch/dist/test_1.min.js.map",
+	// 			"test/watch/dist/test_1?fv=SgfqvMD3.min.js",
+	// 			"test/watch/dist/test_2?fv=7XyeFLlY.js"
+	// 		]
+	// 	}
+	// }
 	// File test/watch/dist/subdir/test_3?fv=fGF8m_Po.js:
 	// ////////////////
-	// import * as test1 from '../test_1?fv=pfQjFHV-.min.js';
+	// import * as test1 from '../test_1?fv=SgfqvMD3.min.js';
 	// import * as test2 from '../test_2?fv=7XyeFLlY.js';
 	// import * as test4 from '../subdir/test_4?fv=NszgzyIB.js';
-	// // Comments referring to './test_1?fv=pfQjFHV-.min.js' should be updated as well.
+	// // Comments referring to './test_1?fv=SgfqvMD3.min.js' should be updated as well.
 	// ////////////////
 }
 
