@@ -38,6 +38,13 @@ var VerAnySizeRegex = regexp.QuoteMeta(Delim) + `[0-9A-Za-z_-]*`
 // Compiled VerAnySizeRegex
 var VerAnySizeRegexC *regexp.Regexp
 
+// FileVerPathReg "midVer" format and should match any path in source files that
+// includes a fileVer. The path regex should be delimited by non-path
+// characters, like `"`.  This regex including "startPath", e.g. `../`.
+//
+// Currently, this regex is very simple and doesn't support all valid paths.
+var FileVerPathReg = `[0-9A-Za-z_\-\/]*\?fv=[0-9A-Za-z_\-]*.[0-9A-Za-z_\-.]*`
+
 // HashAlg is the hash alg used for versioning.
 var HashAlg = coze.SHA256
 
@@ -45,13 +52,15 @@ var HashAlg = coze.SHA256
 //
 //	Src      - Source directory starting point.  Must be nil for SrcFiles.
 //	SrcFiles - Manually provided src files.  Will be set to Src's files if nil (default behavior).
+//	SrcReg   - Compiled Regex used to search source files for FileVersions for Replace().
+//	             May be set by external program.
 //	Dist     - destination directory.  Default: Output will be on one level.
-//	EndVer   - End version format, e.g. `test.txt?fv=000` instead of "mid ver", `test.txt?fv=000`
 type Config struct {
 	Src      string
 	SrcFiles []string
+	SrcReg   *regexp.Regexp
 	Dist     string
-	EndVer   bool
+	UseSAVR  bool
 
 	// Use Internally
 	Info *Info
@@ -143,8 +152,8 @@ func Replace(c *Config) (err error) {
 	if c.Info == nil {
 		return fmt.Errorf("c.Info must be set.")
 	}
-	genSAVR(c)
-	reg := regexp.MustCompile(c.Info.SAVR)
+
+	genSrcReg(c)
 
 	// PathedVersionedReplace is called on each match.  Input is the matched string.
 	// Variable "in" is file name, without the relative subdirectory path.
@@ -153,9 +162,15 @@ func Replace(c *Config) (err error) {
 		c.Info.CurrentMatches++
 		// Match will include version.  Get bare file name without versioning.
 		bare := VerAnySizeRegexC.ReplaceAllString(string(in), "")
-		version := c.Info.PV[bare]
-		//fmt.Printf("bare: %s version: %s \n", bare, version)
-		return []byte(genFileVer(bare, version, c))
+		// If the file has a start path, e.g. `../` in
+		// `../test_1?fv=SgfqvMD3.min.js` is the startPath.
+		// To find the version in PV, must remove startPath (characters [".","/"]).
+		startPathReg := regexp.MustCompile(`^[\/\.]*`)
+		startPath := startPathReg.FindString(bare)
+		woStartPath := startPathReg.ReplaceAllString(bare, "")
+		version := c.Info.PV[woStartPath]
+		//fmt.Printf("bare: %s version: %s woStartPath: %s\n", bare, version, woStartPath)
+		return []byte(startPath + genFileVer(woStartPath, version, c))
 	}
 
 	// Walk walks all files (recursively) in directory.
@@ -176,7 +191,7 @@ func Replace(c *Config) (err error) {
 		if err != nil {
 			return err
 		}
-		replaced := reg.ReplaceAllFunc(read, PathedVersionedReplace)
+		replaced := c.SrcReg.ReplaceAllFunc(read, PathedVersionedReplace)
 		//fmt.Printf("Replaced contents: %s\n", replaced)
 		if c.Info.CurrentMatches > 0 { // Only Write out on match.
 			c.Info.TotalSourceReplaces += c.Info.CurrentMatches
@@ -192,6 +207,19 @@ func Replace(c *Config) (err error) {
 
 	err = filepath.WalkDir(c.Dist, walk)
 	return err
+}
+
+func genSrcReg(c *Config) {
+	if c.SrcReg != nil { // Don't recompile if set.
+		return
+	}
+	if c.UseSAVR {
+		genSAVR(c)
+		c.SrcReg = regexp.MustCompile(c.Info.SAVR)
+		return
+	}
+
+	c.SrcReg = regexp.MustCompile(FileVerPathReg)
 }
 
 // Generate SAVR.  e.g.
@@ -218,12 +246,10 @@ func genSAVR(c *Config) {
 // `subdir/app.min.js`) and digest (0000...). Input `digest` may be the
 // shortened be the version (0000) instead of the whole 64 character digest.
 func genFileVer(file, digest string, c *Config) string {
+	// On no digest, generate dummy, e.g. `app.min.js?fv=0000`
 	if digest == "" {
-		panic("***WARNING***.  Digest empty")
-	}
-	if c.EndVer {
-		// End version format, e.g. `app.min.js?fv=00000000`
-		return file + Delim + digest[:VersionSize]
+		fmt.Printf("***WARNING*** Digest empty for %s\n", file)
+		digest = strings.Repeat("0", VersionSize)
 	}
 	// strings.Cut splits on first instance of char.  Resulting `ext` will be missing first "."
 	baseWithoutExt, ext, _ := strings.Cut(file, ".")
@@ -238,9 +264,6 @@ func genFileVer(file, digest string, c *Config) string {
 // should be the bare relative file path.  E.g. `subdir/test_3.js` or
 // `test_1.js`.
 func genFileVerRegex(file string, c *Config) (regex string) {
-	if c.EndVer {
-		return "(" + regexp.QuoteMeta(file) + VerAnySizeRegex + ")"
-	}
 	dir, base := PathParts(file)
 	// strings.Cut splits on first instance.  Resulting excludes match.
 	baseWithoutExt, ext, _ := strings.Cut(base, ".")

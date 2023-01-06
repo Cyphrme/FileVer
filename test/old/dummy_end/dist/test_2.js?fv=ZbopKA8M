@@ -1,0 +1,4 @@
+import * as test1 from './test_1.js'?fv=00000000;
+import * as test3 from './subdir/test_3.js'?fv=00000000;
+import * as test4 from './subdir/test_4.js'?fv=00000000;
+// Comments referring to './test_1.js'?fv=00000000 should be updated as well. 

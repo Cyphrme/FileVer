@@ -15,8 +15,6 @@ import (
 // tests.
 var dummySrc = "test/dummy/src"
 var dummyDist = "test/dummy/dist"
-var dummyEndSrc = "test/dummy_end/src"
-var dummyEndDist = "test/dummy_end/dist"
 var dummyNoSrc = "test/dummy_no/src"
 var dummyNoDist = "test/dummy_no/dist"
 var watchSrc = "test/watch/src"
@@ -25,6 +23,29 @@ var cleanDist = "test/clean" // For ExampleCleanVersionFiles. Uses dummySrc as s
 
 func init() {
 	clean()
+}
+
+func ExampleFileVerPathReg() {
+	ts :=
+		`// test_1?fv=00000000.js
+		import * as test2 from './test_2?fv=00000000.js';
+		import * as test3 from './subdir/test_3?fv=00000000.js';
+		import * as test4 from './subdir/test_4?fv=00000000.js';
+`
+
+	c := &Config{Src: dummySrc, Dist: dummyDist}
+	genSrcReg(c)
+
+	matches := c.SrcReg.FindAllString(ts, -1)
+	fmt.Println(matches)
+	// Output:
+	//[test_1?fv=00000000.js /test_2?fv=00000000.js /subdir/test_3?fv=00000000.js /subdir/test_4?fv=00000000.js]
+}
+
+func ExamplePathParts() {
+	fmt.Println(PathParts("..subdir/test_5?fv=wwjNHrIw.js"))
+	// Output:
+	// ..subdir/ test_5?fv=wwjNHrIw.js
 }
 
 // Example VersionReplace with mid version with "dummy" input files.
@@ -39,6 +60,7 @@ func ExampleVersionReplace() {
 	PrintFile(dummyDist + "/" + c.Info.VersionedFiles[0])
 
 	// Output:
+	// ***WARNING*** Digest empty for test_3.js
 	// {
 	// 	"Src": "test/dummy/src",
 	// 	"SrcFiles": [
@@ -47,8 +69,9 @@ func ExampleVersionReplace() {
 	// 		"test_1?fv=00000000.js",
 	// 		"test_2?fv=00000000.js"
 	// 	],
+	// 	"SrcReg": {},
 	// 	"Dist": "test/dummy/dist",
-	// 	"EndVer": false,
+	// 	"UseSAVR": false,
 	// 	"Info": {
 	// 		"PV": {
 	// 			"subdir/test_3.js": "7gnMxWXQ",
@@ -56,14 +79,14 @@ func ExampleVersionReplace() {
 	// 			"test_1.js": "oG9WcWOW",
 	// 			"test_2.js": "4UZ0_4xw"
 	// 		},
-	// 		"SAVR": "(subdir/test_3\\?fv=[0-9A-Za-z_-]*.js)|(subdir/test_4\\?fv=[0-9A-Za-z_-]*.js)|(test_1\\?fv=[0-9A-Za-z_-]*.js)|(test_2\\?fv=[0-9A-Za-z_-]*.js)",
+	// 		"SAVR": "",
 	// 		"VersionedFiles": [
 	// 			"subdir/test_3?fv=7gnMxWXQ.js",
 	// 			"subdir/test_4?fv=CeWrTnIH.js",
 	// 			"test_1?fv=oG9WcWOW.js",
 	// 			"test_2?fv=4UZ0_4xw.js"
 	// 		],
-	// 		"TotalSourceReplaces": 14,
+	// 		"TotalSourceReplaces": 15,
 	// 		"UpdatedFilePaths": [
 	// 			"test/dummy/dist/subdir/test_3?fv=7gnMxWXQ.js",
 	// 			"test/dummy/dist/subdir/test_4?fv=CeWrTnIH.js",
@@ -78,30 +101,7 @@ func ExampleVersionReplace() {
 	// import * as test2 from '../test_2?fv=4UZ0_4xw.js';
 	// import * as test4 from '../subdir/test_4?fv=CeWrTnIH.js';
 	// ////////////////
-}
 
-func ExamplePathParts() {
-	fmt.Println(PathParts("..subdir/test_5?fv=wwjNHrIw.js"))
-	// Output:
-	// ..subdir/ test_5?fv=wwjNHrIw.js
-}
-
-// Example VersionReplace using end ver format and dummy file inputs.
-func ExampleVersionReplace_end() {
-	c := &Config{Src: dummyEndSrc, Dist: dummyEndDist, EndVer: true}
-	err := VersionReplace(c)
-	if err != nil {
-		panic(err)
-	}
-	// PrintPretty(c)
-	PrintFile(dummyEndDist + "/" + c.Info.VersionedFiles[0])
-
-	// Output:
-	// File test/dummy_end/dist/subdir/test_3.js?fv=gGkfoWxG:
-	// ////////////////
-	// import * as test1 from '../test_1.js?fv=Jmp9dlP7';
-	// import * as test2 from '../test_2.js?fv=ZbopKA8M';
-	// ////////////////
 }
 
 // Example_watchVersionAndReplace demonstrates using FileVer with the external
@@ -126,6 +126,7 @@ func Example_watchVersionAndReplace() {
 
 	// Output:
 	// Flag `daemon` set to false.  Running commands in config and exiting.
+	// ***WARNING*** Digest empty for test_1.js
 	// {
 	// 	"Src": "test/watch/src",
 	// 	"SrcFiles": [
@@ -134,8 +135,9 @@ func Example_watchVersionAndReplace() {
 	// 		"test_1?fv=00000000.min.js",
 	// 		"test_2?fv=00000000.js"
 	// 	],
+	// 	"SrcReg": {},
 	// 	"Dist": "test/watch/dist",
-	// 	"EndVer": false,
+	// 	"UseSAVR": false,
 	// 	"Info": {
 	// 		"PV": {
 	// 			"subdir/test_3.js": "fGF8m_Po",
@@ -143,14 +145,14 @@ func Example_watchVersionAndReplace() {
 	// 			"test_1.min.js": "SgfqvMD3",
 	// 			"test_2.js": "7XyeFLlY"
 	// 		},
-	// 		"SAVR": "(subdir/test_3\\?fv=[0-9A-Za-z_-]*.js)|(subdir/test_4\\?fv=[0-9A-Za-z_-]*.js)|(test_1\\?fv=[0-9A-Za-z_-]*.min.js)|(test_2\\?fv=[0-9A-Za-z_-]*.js)",
+	// 		"SAVR": "",
 	// 		"VersionedFiles": [
 	// 			"subdir/test_3?fv=fGF8m_Po.js",
 	// 			"subdir/test_4?fv=NszgzyIB.js",
 	// 			"test_1?fv=SgfqvMD3.min.js",
 	// 			"test_2?fv=7XyeFLlY.js"
 	// 		],
-	// 		"TotalSourceReplaces": 19,
+	// 		"TotalSourceReplaces": 20,
 	// 		"UpdatedFilePaths": [
 	// 			"test/watch/dist/subdir/test_3?fv=fGF8m_Po.js",
 	// 			"test/watch/dist/subdir/test_4?fv=NszgzyIB.js",
@@ -167,6 +169,7 @@ func Example_watchVersionAndReplace() {
 	// import * as test4 from '../subdir/test_4?fv=NszgzyIB.js';
 	// // Comments referring to './test_1?fv=SgfqvMD3.min.js' should be updated as well.
 	// ////////////////
+
 }
 
 // Example_noDummy demonstrates inputting "manually" enumerated files to be
@@ -213,16 +216,8 @@ func ExampleExistingVersionedFiles() {
 	}
 	fmt.Println(files)
 
-	// End version format.
-	files, err = ExistingVersionedFiles(dummyEndSrc)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(files)
-
 	// Output:
 	// [subdir/test_3?fv=00000000.js subdir/test_4?fv=00000000.js test_1?fv=00000000.js test_2?fv=00000000.js]
-	// [subdir/test_3?fv=00000000.js subdir/test_4?fv=00000000.js test_1.js?fv=00000000 test_2.js?fv=00000000]
 }
 
 func ExampleCleanVersionFiles() {
@@ -242,8 +237,10 @@ func ExampleCleanVersionFiles() {
 	fmt.Println(c.Info.VersionedFiles)
 	fmt.Println(f)
 	// Output:
+	// ***WARNING*** Digest empty for test_3.js
 	// [subdir/test_3?fv=7gnMxWXQ.js subdir/test_4?fv=CeWrTnIH.js test_1?fv=oG9WcWOW.js test_2?fv=4UZ0_4xw.js]
 	// [not_versioned_example.txt]
+
 }
 
 func Test_clean(t *testing.T) {
@@ -254,7 +251,6 @@ func Test_clean(t *testing.T) {
 func clean() {
 	c := []string{
 		dummyDist,
-		dummyEndDist,
 		dummyNoDist,
 		watchDist,
 		cleanDist,
@@ -273,7 +269,6 @@ func Test__nuke(t *testing.T) {
 func nukeAndRebuildTestDirs() {
 	c := []string{
 		dummyDist,
-		dummyEndDist,
 		dummyNoDist,
 		watchDist,
 		cleanDist,
