@@ -17,10 +17,10 @@ import (
 var VersionSize = 8
 
 // Delim is the FileVer Delimiter.  FileVers are end delimited by any non-b64u
-// character, such as "." or another "?".
-var Delim = "?fv="
+// character, such as "." or another "~".
+var Delim = "~fv="
 
-// VerRegex is the version string regex e.g. `\?fv=00000000`. The version is
+// VerRegex is the version string regex e.g. `\~fv=00000000`. The version is
 // appended to the base file name. VerRegex is set here to a default value, but
 // may be changed as desired.
 var VerRegex = regexp.QuoteMeta(Delim) + `[0-9A-Za-z_-]{` + fmt.Sprint(VersionSize) + `}`
@@ -29,10 +29,10 @@ var VerRegex = regexp.QuoteMeta(Delim) + `[0-9A-Za-z_-]{` + fmt.Sprint(VersionSi
 var VerRegexC *regexp.Regexp
 
 // VerAnySizeRegex is the version string regex for any size version, e.g.
-// (?fv=000). This is especially useful for cleaning out versions that may be of
+// (~fv=000). This is especially useful for cleaning out versions that may be of
 // a different size. By default this regex will match multiple versions in a
 // single file name for sanitization, e.g. this regex will match both version in
-// this string:  `test.txt?fv=000?fv=JPq`
+// this string:  `test.txt~fv=000~fv=JPq`
 var VerAnySizeRegex = regexp.QuoteMeta(Delim) + `[0-9A-Za-z_-]*`
 
 // Compiled VerAnySizeRegex
@@ -43,7 +43,7 @@ var VerAnySizeRegexC *regexp.Regexp
 // characters, like `"`.  This regex including "startPath", e.g. `../`.
 //
 // Currently, this regex is very simple and doesn't support all valid paths.
-var FileVerPathReg = `[0-9A-Za-z_\-\/]*\?fv=[0-9A-Za-z_\-]*.[0-9A-Za-z_\-.]*`
+var FileVerPathReg = `[0-9A-Za-z_\-\/]*~fv=[0-9A-Za-z_\-]*.[0-9A-Za-z_\-.]*`
 
 // HashAlg is the hash alg used for versioning.
 var HashAlg = coze.SHA256
@@ -77,15 +77,20 @@ type Info struct {
 	// "versions", so the match still needs to be matched to a single version
 	// after this regex returns a match.
 	// Example of the resulting regex:
-	// `(app\.min\.js\?fv=[0-9A-Za-z_-]*)|(coze\.min\.js\?fv=[0-9A-Za-z_-]*)`
+	// `(app\.min\.js\~fv=[0-9A-Za-z_-]*)|(coze\.min\.js\~fv=[0-9A-Za-z_-]*)`
 	// SAVR needs to be regenerated for each subdirectory.
 	// key: current directory with root being "" and no preceding `/`.  E.g. `subdir/subdir2`
 	// Value: current directory SAVR.
 	SAVR string
 
 	// Versioned files (relatively pathed to c.Dist).  Generated when calling
-	// `Version()`.  Used by `Replace()` to know what files are versioned.
+	// `Version()`.  Used by `Replace()` to replace in source files the correct FileVer.
 	VersionedFiles []string
+
+	// Index is built by Index().  Key is a versioned file (e.g. subdir/test_3.js)
+	// value is a list of source files that refer to that versioned file, e.g.
+	//["subdir/test_4.js","test_1.min.js","test_2.js"]
+	Index map[string][]string
 
 	// Total number of references that were replaced after running `Replace()`.
 	TotalSourceReplaces int
@@ -112,7 +117,6 @@ func VersionReplace(c *Config) (err error) {
 	if err != nil {
 		return err
 	}
-
 	return Replace(c)
 }
 
@@ -163,7 +167,7 @@ func Replace(c *Config) (err error) {
 		// Match will include version.  Get bare file name without versioning.
 		bare := VerAnySizeRegexC.ReplaceAllString(string(in), "")
 		// If the file has a start path, e.g. `../` in
-		// `../test_1?fv=SgfqvMD3.min.js` is the startPath.
+		// `../test_1~fv=SgfqvMD3.min.js` is the startPath.
 		// To find the version in PV, must remove startPath (characters [".","/"]).
 		startPathReg := regexp.MustCompile(`^[\/\.]*`)
 		startPath := startPathReg.FindString(bare)
@@ -173,8 +177,8 @@ func Replace(c *Config) (err error) {
 		return []byte(startPath + genFileVer(woStartPath, version, c))
 	}
 
-	// Walk walks all files (recursively) in directory.
-	// Variable path is relative to to running location of the program (program root dir).
+	// Walk walks all files (recursively) in directory. Variable `path` is
+	// relative to to running location of the program (program root dir).
 	var walk = func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -209,44 +213,22 @@ func Replace(c *Config) (err error) {
 	return err
 }
 
-func genSrcReg(c *Config) {
-	if c.SrcReg != nil { // Don't recompile if set.
-		return
-	}
-	if c.UseSAVR {
-		genSAVR(c)
-		c.SrcReg = regexp.MustCompile(c.Info.SAVR)
-		return
-	}
-
-	c.SrcReg = regexp.MustCompile(FileVerPathReg)
+// Index builds an index of what files The index map, has the key of the version
+// that being replaced, and the value of the files that the version exists.
+func Index(c *Config) {
+	// TODO
 }
 
-// Generate SAVR.  e.g.
-// (subdir/test_3\\?fv=[0-9A-Za-z_-]*.js)|(test_1\\?fv=[0-9A-Za-z_-]*.js)
-func genSAVR(c *Config) {
-	c.Info.SAVR = ""
-	bookEnd := false
-	for _, k := range c.Info.VersionedFiles {
-		nv := VerAnySizeRegexC.ReplaceAllString(k, "") // get bare file name without version.
-		nv = strings.ReplaceAll(nv, c.Dist, "")        // Remove dist (imports are relative to dist).
-
-		if bookEnd { // Fencepost
-			c.Info.SAVR += "|"
-		} else {
-			bookEnd = true
-		}
-
-		c.Info.SAVR += genFileVerRegex(nv, c)
-	}
+func IndexReplace(c *Config) {
+	// Index
 }
 
-// genFileVer generates the fileVer (e.g. app.min.js?fv=0000 or
-// app?fv=0000.min.js) from the bare relative file name (`app.min.js` or
+// genFileVer generates the fileVer (e.g. app.min.js~fv=0000 or
+// app~fv=0000.min.js) from the bare relative file name (`app.min.js` or
 // `subdir/app.min.js`) and digest (0000...). Input `digest` may be the
 // shortened be the version (0000) instead of the whole 64 character digest.
 func genFileVer(file, digest string, c *Config) string {
-	// On no digest, generate dummy, e.g. `app.min.js?fv=0000`
+	// On no digest, generate dummy, e.g. `app.min.js~fv=0000`
 	if digest == "" {
 		fmt.Printf("***WARNING*** Digest empty for %s\n", file)
 		digest = strings.Repeat("0", VersionSize)
@@ -260,7 +242,7 @@ func genFileVer(file, digest string, c *Config) string {
 }
 
 // genFileVerRegex Returns the regex to find the versioned file encapsulated in
-// parentheses, e.g. `(subdir/test_3\?fv=[0-9A-Za-z_-]*.js)`.  Variable `file`
+// parentheses, e.g. `(subdir/test_3\~fv=[0-9A-Za-z_-]*.js)`.  Variable `file`
 // should be the bare relative file path.  E.g. `subdir/test_3.js` or
 // `test_1.js`.
 func genFileVerRegex(file string, c *Config) (regex string) {
@@ -298,7 +280,7 @@ func CleanVersionFiles(path string) error {
 }
 
 // ExistingVersionedFiles returns all existing versioned files in  `directory`
-// including dummies (e.g. "app.min.js?fv=00000000") and subdirectories.
+// including dummies (e.g. "app.min.js~fv=00000000") and subdirectories.
 // `directory` should not have trailing slash.  Returns paths relative to
 // `directory`.
 func ExistingVersionedFiles(directory string) (fileVers []string, err error) {
@@ -373,8 +355,8 @@ func ListFilesInPath(path string) (files []string, err error) {
 	return files, nil
 }
 
-// Returns directory and base.  e.g. for `..subdir/test_5?fv=wwjNHrIw.js`
-// returns `..subdir/` and `test_5?fv=wwjNHrIw.js`
+// Returns directory and base.  e.g. for `..subdir/test_5~fv=wwjNHrIw.js`
+// returns `..subdir/` and `test_5~fv=wwjNHrIw.js`
 func PathParts(path string) (dir, base string) {
 	base = filepath.Base(path)
 	dir = path[:len(path)-len(base)]
@@ -433,8 +415,8 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 		return "", err
 	}
 
-	// Search for outFilePath FileVer, e.g. `app.min.js?fv=00000000` or
-	// `app?fv=00000000.min.js.map`. Must match whole file name since if just
+	// Search for outFilePath FileVer, e.g. `app.min.js~fv=00000000` or
+	// `app~fv=00000000.min.js.map`. Must match whole file name since if just
 	// matching substring files with alternative extensions, e.g. `min.js` vs
 	// `min.js.map`, will match when they shouldn't.
 	anyVersionReg := regexp.MustCompile(genFileVerRegex(base, c))
@@ -483,6 +465,38 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 	}
 
 	return outFilePath, nil
+}
+
+func genSrcReg(c *Config) {
+	if c.SrcReg != nil { // Don't recompile if set.
+		return
+	}
+	if c.UseSAVR {
+		genSAVR(c)
+		c.SrcReg = regexp.MustCompile(c.Info.SAVR)
+		return
+	}
+
+	c.SrcReg = regexp.MustCompile(FileVerPathReg)
+}
+
+// Generate SAVR.  e.g.
+// (subdir/test_3\\~fv=[0-9A-Za-z_-]*.js)|(test_1\\~fv=[0-9A-Za-z_-]*.js)
+func genSAVR(c *Config) {
+	c.Info.SAVR = ""
+	bookEnd := false
+	for _, k := range c.Info.VersionedFiles {
+		nv := VerAnySizeRegexC.ReplaceAllString(k, "") // get bare file name without version.
+		nv = strings.ReplaceAll(nv, c.Dist, "")        // Remove dist (imports are relative to dist).
+
+		if bookEnd { // Fencepost
+			c.Info.SAVR += "|"
+		} else {
+			bookEnd = true
+		}
+
+		c.Info.SAVR += genFileVerRegex(nv, c)
+	}
 }
 
 // HashFile accepts a path, a hashing algorithm, return digest and pointer to file.

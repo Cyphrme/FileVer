@@ -30,35 +30,35 @@ with a 1 out of 281 trillion chance for collision. (We considered 7 characters,
 1 out of 4 trillion chance, but that's 5.25 bytes and it's better to use a whole
 byte.)
 
-	app.min.js?fv=4mIbJJPq
+	app~fv=4mIbJJPq.min.js
 
-A base file of a FileVer is everything before the last `?` character. 
+A base file of a FileVer is everything before the last `~` character. 
 
 # Naming
 A FileVer is the full file name with a file version.
 
 | Name                                  | Example                   |
 | ------------------------------------- | ------------------------- |
-| FileVer, versioned file, full version | `app?fv=4mIbJJPq.min.js`  |
+| FileVer, versioned file, full version | `app~fv=4mIbJJPq.min.js`  |
 | File, File name, bare file            | `app.min.js`              |
 | Version                               | `4mIbJJPq`                |
-| Delimiter, delim                      | `?fv=`                    |
-| Delim'd Version                       | `?fv=4mIbJJPq`            |
+| Delimiter, delim                      | `~fv=`                    |
+| Delim'd Version                       | `~fv=4mIbJJPq`            |
 | zero'd Version, dummy Version         | `00000000`                |
-| Delim'd dummy Version                 | `?fv=00000000`            |
-| Dummy Versioned File, Full Dummy      | `app.min.js?fv=00000000`  |
+| Delim'd dummy Version                 | `~fv=00000000`            |
+| Dummy Versioned File, Full Dummy      | `app~fv=00000000.min.js`  |
 
-A FileVer may refer to a file with a dummy version, i.e. app.min.js?fv=00000000 is a FileVer.  
+A FileVer may refer to a file with a dummy version, i.e. app~fv=00000000.min.js is a FileVer.  
 
 ### Vocabulary
 - dist -"distribution": The destination directory.  
-- Versioned file: A file with a file version, e.g. app.min.js?fv=4mIbJJPq.
-- Delimitor:  The FileVer delimiter string is (by default) `?fv=`.  The ending
-  delimitor for a Version is any non-base64 url safe character, such as another
-  "?" character.  This follows the standard URL Query and URL Fragment Query
+- Versioned file: A file with a file version, e.g. app~fv=4mIbJJPq.min.js.
+- Delimitor:  The FileVer delimiter string is (by default) `~fv=`.  The ending
+  delimitor for a Version is any non-base64 character, such as another
+  "~" character.  This follows the standard URL Query and URL Fragment Query
   notation.  
 - non-dummy versioned files: a file with a digest as the version, e.g.
-  app.min.js?fv=4mIbJJPq.
+  app.min.js~fv=4mIbJJPq.
 
 
 # Pipeline
@@ -92,7 +92,7 @@ Then:
   - modify js source file (file.js)-> 
   - watch is triggered, runs a `.sh` script that invokes 1. esbuild and then 2. FileVer ->
   - esbuild minifies source file, outputs `src/file.min.js`. 
-  - FileVer versions source file and outputs `dist/file.min.js?fv=4mIbJJPq` -> 
+  - FileVer versions source file and outputs `dist/file.min.js~fv=4mIbJJPq` -> 
   - FileVer updates other source code files in `dist` with FileVer (Replace).
 
 
@@ -104,17 +104,17 @@ untouched).
 
 It is correct for Javascript files in `src` to import use this form: 
 
-`import * as test1 from './test_1.js?fv=00000000';`
+`import * as test1 from './test_1.js~fv=00000000';`
 
 FileVer Replace() will update imports in `dist` to point to the correct file.
 
-`import * as test1 from './test_1.js?fv=4WYoW0MN';`
+`import * as test1 from './test_1.js~fv=4WYoW0MN';`
 
 
 | `src` (Input Directory) Import   | `dist` (Output Directory) Import |
 | -------------------------------- | -------------------------        |
-| `app.min.js?fv=00000000`         | `app.min.js?fv=4mIbJJPq`         |
-| `lib.min.js?fv=00000000`         | `lib.min.js?fv=820OsC4y`         | 
+| `app.min.js~fv=00000000`         | `app.min.js~fv=4mIbJJPq`         |
+| `lib.min.js~fv=00000000`         | `lib.min.js~fv=820OsC4y`         | 
 
 
 Note: A consequence of this design is that the versioned files digest will not
@@ -141,11 +141,11 @@ To implement 2 easily, all imports in `dist` must be relative to directory
 
 For example, if in subdirectory named "subdir", imports must be relative to the root, e.g. 
 
-'../subdir/test_3?fv=CX_w_yNh.js';
+'../subdir/test_3~fv=CX_w_yNh.js';
 
 and not
 
-'./test_3?fv=00000000.js'
+'./test_3~fv=00000000.js'
 
  
 #### Matching problem if not relative to root
@@ -176,7 +176,7 @@ avoid update recursion. Since some formats, like Javascript modules, may refer
 to other versioned files, this risks file version recursion. To avoid this, the
 pipeline is one directional. It's suggested that source files that refer to
 other versioned files use a dummy, constant file version in references, such as
-`app.min.js?fv=00000000`.  Then, after the file version digest is calculated and
+`app.min.js~fv=00000000`.  Then, after the file version digest is calculated and
 placed in the dist dir, the version in other source files is updated with
 Replace().  This has the consequence that the versioned file's name, after
 replace, will not be calculable from the source unless the dummy version is

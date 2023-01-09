@@ -27,10 +27,10 @@ func init() {
 
 func ExampleFileVerPathReg() {
 	ts :=
-		`// test_1?fv=00000000.js
-		import * as test2 from './test_2?fv=00000000.js';
-		import * as test3 from './subdir/test_3?fv=00000000.js';
-		import * as test4 from './subdir/test_4?fv=00000000.js';
+		`// test_1~fv=00000000.js
+		import * as test2 from './test_2~fv=00000000.js';
+		import * as test3 from './subdir/test_3~fv=00000000.js';
+		import * as test4 from './subdir/test_4~fv=00000000.js';
 `
 
 	c := &Config{Src: dummySrc, Dist: dummyDist}
@@ -39,13 +39,13 @@ func ExampleFileVerPathReg() {
 	matches := c.SrcReg.FindAllString(ts, -1)
 	fmt.Println(matches)
 	// Output:
-	//[test_1?fv=00000000.js /test_2?fv=00000000.js /subdir/test_3?fv=00000000.js /subdir/test_4?fv=00000000.js]
+	//[test_1~fv=00000000.js /test_2~fv=00000000.js /subdir/test_3~fv=00000000.js /subdir/test_4~fv=00000000.js]
 }
 
 func ExamplePathParts() {
-	fmt.Println(PathParts("..subdir/test_5?fv=wwjNHrIw.js"))
+	fmt.Println(PathParts("..subdir/test_5~fv=wwjNHrIw.js"))
 	// Output:
-	// ..subdir/ test_5?fv=wwjNHrIw.js
+	// ..subdir/ test_5~fv=wwjNHrIw.js
 }
 
 // Example VersionReplace with mid version with "dummy" input files.
@@ -64,45 +64,57 @@ func ExampleVersionReplace() {
 	// {
 	// 	"Src": "test/dummy/src",
 	// 	"SrcFiles": [
-	// 		"subdir/test_3?fv=00000000.js",
-	// 		"subdir/test_4?fv=00000000.js",
-	// 		"test_1?fv=00000000.js",
-	// 		"test_2?fv=00000000.js"
+	// 		"subdir/test_3~fv=00000000.js",
+	// 		"subdir/test_4~fv=00000000.js",
+	// 		"test_1~fv=00000000.js",
+	// 		"test_2~fv=00000000.js"
 	// 	],
 	// 	"SrcReg": {},
 	// 	"Dist": "test/dummy/dist",
 	// 	"UseSAVR": false,
 	// 	"Info": {
 	// 		"PV": {
-	// 			"subdir/test_3.js": "7gnMxWXQ",
-	// 			"subdir/test_4.js": "CeWrTnIH",
-	// 			"test_1.js": "oG9WcWOW",
-	// 			"test_2.js": "4UZ0_4xw"
+	// 			"subdir/test_3.js": "_X83uO__",
+	// 			"subdir/test_4.js": "GJIrg6k1",
+	// 			"test_1.js": "vPCb4GVO",
+	// 			"test_2.js": "BOl7h9TM"
 	// 		},
 	// 		"SAVR": "",
 	// 		"VersionedFiles": [
-	// 			"subdir/test_3?fv=7gnMxWXQ.js",
-	// 			"subdir/test_4?fv=CeWrTnIH.js",
-	// 			"test_1?fv=oG9WcWOW.js",
-	// 			"test_2?fv=4UZ0_4xw.js"
+	// 			"subdir/test_3~fv=_X83uO__.js",
+	// 			"subdir/test_4~fv=GJIrg6k1.js",
+	// 			"test_1~fv=vPCb4GVO.js",
+	// 			"test_2~fv=BOl7h9TM.js"
 	// 		],
+	// 		"Index": null,
 	// 		"TotalSourceReplaces": 15,
 	// 		"UpdatedFilePaths": [
-	// 			"test/dummy/dist/subdir/test_3?fv=7gnMxWXQ.js",
-	// 			"test/dummy/dist/subdir/test_4?fv=CeWrTnIH.js",
-	// 			"test/dummy/dist/test_1?fv=oG9WcWOW.js",
-	// 			"test/dummy/dist/test_2?fv=4UZ0_4xw.js"
+	// 			"test/dummy/dist/subdir/test_3~fv=_X83uO__.js",
+	// 			"test/dummy/dist/subdir/test_4~fv=GJIrg6k1.js",
+	// 			"test/dummy/dist/test_1~fv=vPCb4GVO.js",
+	// 			"test/dummy/dist/test_2~fv=BOl7h9TM.js"
 	// 		]
 	// 	}
 	// }
-	// File test/dummy/dist/subdir/test_3?fv=7gnMxWXQ.js:
+	// File test/dummy/dist/subdir/test_3~fv=_X83uO__.js:
 	// ////////////////
-	// import * as test1 from '../test_1?fv=oG9WcWOW.js';
-	// import * as test2 from '../test_2?fv=4UZ0_4xw.js';
-	// import * as test4 from '../subdir/test_4?fv=CeWrTnIH.js';
+	// import * as test1 from '../test_1~fv=vPCb4GVO.js';
+	// import * as test2 from '../test_2~fv=BOl7h9TM.js';
+	// import * as test4 from '../subdir/test_4~fv=GJIrg6k1.js';
 	// ////////////////
 
 }
+
+// // TestVersionReplace VersionReplace with mid version with "dummy" input files.
+// func TestVersionReplace(t *testing.T) {
+// 	c := &Config{Src: dummySrc, Dist: dummyDist}
+// 	err := VersionReplace(c)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	PrintPretty(c)
+// 	PrintFile(dummyDist + "/" + c.Info.VersionedFiles[0])
+// }
 
 // Example_watchVersionAndReplace demonstrates using FileVer with the external
 // program "watch". Uses the "mid version" format.
@@ -126,48 +138,52 @@ func Example_watchVersionAndReplace() {
 
 	// Output:
 	// Flag `daemon` set to false.  Running commands in config and exiting.
+
+	// Replace Config  &{Src:test/watch/src SrcFiles:[subdir/test_3~fv=00000000.js subdir/test_4~fv=00000000.js test_1~fv=00000000.min.js test_2~fv=00000000.js] SrcReg:<nil> Dist:test/watch/dist UseSAVR:false Info:0xc0001dc5b0} Info: &{PV:map[subdir/test_3.js:gia0-_Z_ subdir/test_4.js:da1EKBXZ test_1.min.js:1sTEzePc test_2.js:qBbNrrTr] SAVR: VersionedFiles:[subdir/test_3~fv=gia0-_Z_.js subdir/test_4~fv=da1EKBXZ.js test_1~fv=1sTEzePc.min.js test_2~fv=qBbNrrTr.js] Index:map[] TotalSourceReplaces:0 UpdatedFilePaths:[] CurrentPath: CurrentMatches:0}
+	// ***WARNING*** Digest empty for test_3.js
 	// ***WARNING*** Digest empty for test_1.js
 	// {
 	// 	"Src": "test/watch/src",
 	// 	"SrcFiles": [
-	// 		"subdir/test_3?fv=00000000.js",
-	// 		"subdir/test_4?fv=00000000.js",
-	// 		"test_1?fv=00000000.min.js",
-	// 		"test_2?fv=00000000.js"
+	// 		"subdir/test_3~fv=00000000.js",
+	// 		"subdir/test_4~fv=00000000.js",
+	// 		"test_1~fv=00000000.min.js",
+	// 		"test_2~fv=00000000.js"
 	// 	],
 	// 	"SrcReg": {},
 	// 	"Dist": "test/watch/dist",
 	// 	"UseSAVR": false,
 	// 	"Info": {
 	// 		"PV": {
-	// 			"subdir/test_3.js": "fGF8m_Po",
-	// 			"subdir/test_4.js": "NszgzyIB",
-	// 			"test_1.min.js": "SgfqvMD3",
-	// 			"test_2.js": "7XyeFLlY"
+	// 			"subdir/test_3.js": "gia0-_Z_",
+	// 			"subdir/test_4.js": "da1EKBXZ",
+	// 			"test_1.min.js": "1sTEzePc",
+	// 			"test_2.js": "qBbNrrTr"
 	// 		},
 	// 		"SAVR": "",
 	// 		"VersionedFiles": [
-	// 			"subdir/test_3?fv=fGF8m_Po.js",
-	// 			"subdir/test_4?fv=NszgzyIB.js",
-	// 			"test_1?fv=SgfqvMD3.min.js",
-	// 			"test_2?fv=7XyeFLlY.js"
+	// 			"subdir/test_3~fv=gia0-_Z_.js",
+	// 			"subdir/test_4~fv=da1EKBXZ.js",
+	// 			"test_1~fv=1sTEzePc.min.js",
+	// 			"test_2~fv=qBbNrrTr.js"
 	// 		],
+	// 		"Index": null,
 	// 		"TotalSourceReplaces": 20,
 	// 		"UpdatedFilePaths": [
-	// 			"test/watch/dist/subdir/test_3?fv=fGF8m_Po.js",
-	// 			"test/watch/dist/subdir/test_4?fv=NszgzyIB.js",
+	// 			"test/watch/dist/subdir/test_3~fv=gia0-_Z_.js",
+	// 			"test/watch/dist/subdir/test_4~fv=da1EKBXZ.js",
 	// 			"test/watch/dist/test_1.min.js.map",
-	// 			"test/watch/dist/test_1?fv=SgfqvMD3.min.js",
-	// 			"test/watch/dist/test_2?fv=7XyeFLlY.js"
+	// 			"test/watch/dist/test_1~fv=1sTEzePc.min.js",
+	// 			"test/watch/dist/test_2~fv=qBbNrrTr.js"
 	// 		]
 	// 	}
 	// }
-	// File test/watch/dist/subdir/test_3?fv=fGF8m_Po.js:
+	// File test/watch/dist/subdir/test_3~fv=gia0-_Z_.js:
 	// ////////////////
-	// import * as test1 from '../test_1?fv=SgfqvMD3.min.js';
-	// import * as test2 from '../test_2?fv=7XyeFLlY.js';
-	// import * as test4 from '../subdir/test_4?fv=NszgzyIB.js';
-	// // Comments referring to './test_1?fv=SgfqvMD3.min.js' should be updated as well.
+	// import * as test1 from '../test_1~fv=1sTEzePc.min.js';
+	// import * as test2 from '../test_2~fv=qBbNrrTr.js';
+	// import * as test4 from '../subdir/test_4~fv=da1EKBXZ.js';
+	// // Comments referring to './test_1~fv=1sTEzePc.min.js' should be updated as well.
 	// ////////////////
 
 }
@@ -193,7 +209,7 @@ func Example_noDummy() {
 	// PrintFile(dummyNoDist + "/" + c.Info.VersionedFiles[0])
 
 	// Output:
-	// [test_1?fv=DneDuFnM.js test_2?fv=62jVtATD.js subdir/test_3?fv=7gnMxWXQ.js subdir/test_4?fv=WMNO8lQ4.js]
+	// [test_1~fv=qlJgGoFM.js test_2~fv=8RBMUSqr.js subdir/test_3~fv=_X83uO__.js subdir/test_4~fv=2lfgwhXI.js]
 }
 
 func ExampleListFilesInPath() {
@@ -217,7 +233,7 @@ func ExampleExistingVersionedFiles() {
 	fmt.Println(files)
 
 	// Output:
-	// [subdir/test_3?fv=00000000.js subdir/test_4?fv=00000000.js test_1?fv=00000000.js test_2?fv=00000000.js]
+	// [subdir/test_3~fv=00000000.js subdir/test_4~fv=00000000.js test_1~fv=00000000.js test_2~fv=00000000.js]
 }
 
 func ExampleCleanVersionFiles() {
@@ -238,7 +254,7 @@ func ExampleCleanVersionFiles() {
 	fmt.Println(f)
 	// Output:
 	// ***WARNING*** Digest empty for test_3.js
-	// [subdir/test_3?fv=7gnMxWXQ.js subdir/test_4?fv=CeWrTnIH.js test_1?fv=oG9WcWOW.js test_2?fv=4UZ0_4xw.js]
+	// [subdir/test_3~fv=_X83uO__.js subdir/test_4~fv=GJIrg6k1.js test_1~fv=vPCb4GVO.js test_2~fv=BOl7h9TM.js]
 	// [not_versioned_example.txt]
 
 }
