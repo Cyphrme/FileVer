@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/cyphrme/coze"
+	"golang.org/x/exp/slices"
 )
 
 // VersionSize is the number of digest characters in the Version.
@@ -94,6 +95,11 @@ type Info struct {
 
 	// Total number of references that were replaced after running `Replace()`.
 	TotalSourceReplaces int
+
+	// CheckedFilePaths are files that were checked by `Replace()`, but the
+	// existing source file was current.  Paths are
+	// relative to pwd.
+	CheckedFilePaths []string
 
 	// UpdatedFilePaths are files that were updated by `Replace()`.  Paths are
 	// relative to pwd.
@@ -198,6 +204,12 @@ func Replace(c *Config) (err error) {
 		replaced := c.SrcReg.ReplaceAllFunc(read, PathedVersionedReplace)
 		//fmt.Printf("Replaced contents: %s\n", replaced)
 		if c.Info.CurrentMatches > 0 { // Only Write out on match.
+
+			if slices.Equal(read, replaced) { // Don't write out if there are no updates.
+				c.Info.CheckedFilePaths = append(c.Info.CheckedFilePaths, path)
+				return nil
+			}
+
 			c.Info.TotalSourceReplaces += c.Info.CurrentMatches
 			c.Info.UpdatedFilePaths = append(c.Info.UpdatedFilePaths, path)
 			//fmt.Printf("info.CurrentMatches: %d.  Writing updated file: %s\n", c.Info.CurrentMatches, path)
