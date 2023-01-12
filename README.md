@@ -25,30 +25,63 @@ minification, and CSS minification.
 
 # Version
 The version string is a digest derived from the content of the file.  
-The default version is 48 bits, 12 character long (8 characters of base64 URI),
-with a 1 out of 281 trillion chance for collision. (We considered 7 characters,
-1 out of 4 trillion chance, but that's 5.25 bytes and it's better to use a whole
-byte.)
+The default version is 32 bits, 8 character version with a 1 out of 4.2 billion
+chance for collision.   (We considered 7 characters, 1 out of 268 million
+chance, but that's 5.25 bytes and it's better to use a whole byte. We consider 6
+characters to be too small with a 1 out of 16 million chance of collision.
+
+The whole version is 12 characters long; the deliminator `~` is 1 character ,
+identifier `fv` is 2 characters, key/value delimiter `=` is 1 character, and 8
+characters for the base64 version.
 
 	app~fv=4mIbJJPq.min.js
 
-A base file of a FileVer is everything before the last `~` character. 
 
 # Naming
 A FileVer is the full file name with a file version.
 
-| Name                                  | Example                   |
-| ------------------------------------- | ------------------------- |
-| FileVer, versioned file, full version | `app~fv=4mIbJJPq.min.js`  |
-| File, File name, bare file            | `app.min.js`              |
-| Version                               | `4mIbJJPq`                |
-| Delimiter, delim                      | `~fv=`                    |
-| Delim'd Version                       | `~fv=4mIbJJPq`            |
-| zero'd Version, dummy Version         | `00000000`                |
-| Delim'd dummy Version                 | `~fv=00000000`            |
-| Dummy Versioned File, Full Dummy      | `app~fv=00000000.min.js`  |
+General naming (not specific to FileVer)
+| Name                                  | Example                     |
+| ------------------------------------- | --------------------------- |
+| Full path                             | e/app.min.js                |
+| Path                                  | e/                          |
+| File (filename)                       | app.min.js                  |
+| Base                                  | app                         |
+| Extension                             | .min.js                     |
+| Base extension                        | .js                         |
 
-A FileVer may refer to a file with a dummy version, i.e. app~fv=00000000.min.js is a FileVer.  
+Naming for a FileVer example
+| Name                                  | Example                     |
+| ------------------------------------- | --------------------------- |
+| Full path                             | `e/app~fv=4mIbJJPq.min.js`  |
+| Path                                  | `e/`                        |
+| File (filename)                       | `app~fv=4mIbJJPq.min.js`    |
+| Base                                  | `app~fv=4mIbJJPq`           |
+| Extension                             | `.min.js`                   |
+| Base extension                        | `.js`                       |
+|                                       |                             |
+| Pathed FileVer                        | `e/app~fv=4mIbJJPq.min.js`  |
+| FileVer, versioned file               | `app~fv=4mIbJJPq.min.js`    |
+| Bare path                             | `e/app.min.js`              |
+| Bare file                             | `app.min.js`                |
+| Bare                                  | `app`                       |
+| Version                               | `4mIbJJPq`                  |
+| Delimiter (delim)                     | `~fv=`                      |
+| Delimited (delim'd) version           | `~fv=4mIbJJPq`              |
+| Dummy version (zeroed version)        | `00000000`                  |
+| Delim'd dummy Version                 | `~fv=00000000`              |
+| Dummy versioned file (full dummy)     | `e/app~fv=00000000.min.js`  |
+
+
+A FileVer may refer to a file with a dummy version, i.e. `app~fv=00000000.min.js`
+is a FileVer.  
+
+A base name of a FileVer is everything before the `~` character and excludes
+pathing.  For the path `/example/app~fv=4mIbJJPq.min.js`, the base is simply
+`app` with no extension or pathing.  
+
+Extension includes all sub extensions and a preceding `.`.  For
+`app~fv=4mIbJJPq.min.js.map` the extension is `.min.js.map`
 
 ### Vocabulary
 - dist -"distribution": The destination directory.  

@@ -147,10 +147,9 @@ func Version(c *Config) (err error) {
 		if err != nil {
 			return err
 		}
-		// Set the Info struct
-		basePath := VerAnySizeRegexC.ReplaceAllString(file, "")                            // get bare file name no version with path
-		c.Info.PV[basePath] = strings.TrimPrefix(VerAnySizeRegexC.FindString(file), Delim) // Set version, e.g. "4WYoW0MN"
 		c.Info.VersionedFiles = append(c.Info.VersionedFiles, file)
+		p := Populated(file)
+		c.Info.PV[p.BarePath] = p.Version // Set version,  e.g. "e/app.min.js" = "4WYoW0MN"
 	}
 	return nil
 }
@@ -180,7 +179,13 @@ func Replace(c *Config) (err error) {
 		woStartPath := startPathReg.ReplaceAllString(bare, "")
 		version := c.Info.PV[woStartPath]
 		//fmt.Printf("bare: %s version: %s woStartPath: %s\n", bare, version, woStartPath)
-		return []byte(startPath + genFileVer(woStartPath, version, c))
+		fv, dummied := genFileVer(woStartPath, version, c)
+		if dummied {
+			fmt.Printf("***WARNING*** Digest empty or too small for %s\n", woStartPath)
+		}
+		fv = startPath + fv // TODO this can probably be fixed in genFileVer
+		return []byte(fv)
+
 	}
 
 	// Walk walks all files (recursively) in directory. Variable `path` is
@@ -235,22 +240,18 @@ func IndexReplace(c *Config) {
 	// Index
 }
 
-// genFileVer generates the fileVer (e.g. app.min.js~fv=0000 or
-// app~fv=0000.min.js) from the bare relative file name (`app.min.js` or
-// `subdir/app.min.js`) and digest (0000...). Input `digest` may be the
-// shortened be the version (0000) instead of the whole 64 character digest.
-func genFileVer(file, digest string, c *Config) string {
-	// On no digest, generate dummy, e.g. `app.min.js~fv=0000`
-	if digest == "" {
-		fmt.Printf("***WARNING*** Digest empty for %s\n", file)
+// genFileVer generates the pathed fileVer (e.g. e/app~fv=0000.min.js) from the
+// bare relative file name (`e/app.min.js`) and digest (0000...). Input `digest`
+// may be shortened (0000) instead of the whole digest. If digest is empty or
+// too short, version is zeroed.
+func genFileVer(file, digest string, c *Config) (filever string, dummied bool) {
+	if digest == "" || len(digest) < VersionSize {
 		digest = strings.Repeat("0", VersionSize)
+		dummied = true
 	}
-	// strings.Cut splits on first instance of char.  Resulting `ext` will be missing first "."
-	baseWithoutExt, ext, _ := strings.Cut(file, ".")
-	//fmt.Printf("genFileVer:%s, %s \n", baseWithoutExt, ext)
-	fv := baseWithoutExt + Delim + digest[:VersionSize] + "." + ext
-	return fv
-
+	p := Populated(file)
+	fv := p.Path + p.Bare + Delim + digest[:VersionSize] + p.Ext
+	return fv, dummied
 }
 
 // genFileVerRegex Returns the regex to find the versioned file encapsulated in
@@ -258,7 +259,7 @@ func genFileVer(file, digest string, c *Config) string {
 // should be the bare relative file path.  E.g. `subdir/test_3.js` or
 // `test_1.js`.
 func genFileVerRegex(file string, c *Config) (regex string) {
-	dir, base := PathParts(file)
+	dir, base := PathCut(file)
 	// strings.Cut splits on first instance.  Resulting excludes match.
 	baseWithoutExt, ext, _ := strings.Cut(base, ".")
 	return "(" + regexp.QuoteMeta(dir+baseWithoutExt) + VerAnySizeRegex + "." + ext + ")"
@@ -367,57 +368,41 @@ func ListFilesInPath(path string) (files []string, err error) {
 	return files, nil
 }
 
-// Returns directory and base.  e.g. for `..subdir/test_5~fv=wwjNHrIw.js`
-// returns `..subdir/` and `test_5~fv=wwjNHrIw.js`
-func PathParts(path string) (dir, base string) {
-	base = filepath.Base(path)
-	dir = path[:len(path)-len(base)]
-	return
-}
-
-// FileToFileVerOutputDelete accepts a bare or dummied versioned file, copies
-// the file renamed with its correct FileVer to an output directory, and deletes
-// any previous version in the output directory. Returns outFilePath, relative
-// to c.Dist, which itself is relative to `pwd`.  This function ignores
-// subdirectories, and does not re-hash files already in output directory.
+// FileToFileVerOutputDelete accepts a filepath (versions or dummied), e.g.
+// `subdir/test_3~fv=00000000.js`, copies the file renamed with its correct
+// FileVer to an output directory, and deletes any previous version in the
+// output directory. Returns outFilePath, relative to c.Dist, which itself is
+// relative to `pwd`.  This function ignores subdirectories, and does not
+// re-hash files already in output directory.
 //
 // `filePath` is input file path relative to `c.Src`, which itself is
 // relative to pwd (unless absolute).
 //
 // c.Dist and c.Src must be set. If pwd == c.Src, it may be left blank.
+// filePath
 func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, err error) {
-	//log.Debug().Msgf("FileToFileVerOutputDelete filePath: %s src: %s dist: %s ", filePath, c.Src, c.Dist)
+	//fmt.Printf("FileToFileVerOutputDelete filePath: %s src: %s dist: %s \n", filePath, c.Src, c.Dist)
 	dig, _, err := HashFile(c.Src+string(os.PathSeparator)+filePath, HashAlg)
 	if err != nil {
 		return "", err
 	}
 
-	base := VerAnySizeRegexC.ReplaceAllString(filepath.Base(filePath), "")
-	fileVer := genFileVer(base, dig.String(), c)
-
-	// If file exists, remove any existing version (including dummy version and/or
-	// duplicate versions in a single file name) from file name.
-	//
-	// Relative path from `src` (excluding src, base name). Starts with "/".
-	rDir := filepath.Dir(filePath)
-	if rDir == "." { // Sanitize filepath, which adds a "." on empty. 😞
-		rDir = ""
+	fileVer, dummied := genFileVer(filePath, dig.String(), c)
+	if dummied {
+		return "", fmt.Errorf("Dummied version returned %s for %s\n", fileVer, filePath)
 	}
-	rDir = strings.Replace(rDir, c.Src, "", 1)
-	distRDir := c.Dist + string(os.PathSeparator) + rDir
-	outFilePath = rDir + string(os.PathSeparator) + fileVer
+	p := Populated(filePath)
+	rPath := strings.Replace(p.Path, c.Src, "", 1)
+	distRDir := c.Dist + string(os.PathSeparator) + rPath
+	//fmt.Printf("FileVer: %s, rPath: %s, distRDir: %s\n", fileVer, rPath, distRDir)
 
-	if rDir == "" {
-		outFilePath = fileVer
-	} else {
-		//log.Debug().Msgf("creating relative dirs: %s", distRDir)
+	if rPath != "" {
+		// fmt.Printf("creating relative dirs: %s", distRDir)
 		os.MkdirAll(distRDir, 0755)
 		if err != nil {
 			return "", err
 		}
-		outFilePath = rDir + string(os.PathSeparator) + fileVer
 	}
-	//log.Debug().Msgf("rDir: %s, outFilePath: %+v", rDir, outFilePath)
 
 	// Check if the FileVer already exists in output directory, if it does, don't
 	// copy.  Regardless, also check for existing and/or previous versions in
@@ -427,10 +412,11 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 		return "", err
 	}
 
-	// Search for outFilePath FileVer, e.g. `app.min.js~fv=00000000` or
-	// `app~fv=00000000.min.js.map`. Must match whole file name since if just
-	// matching substring files with alternative extensions, e.g. `min.js` vs
-	// `min.js.map`, will match when they shouldn't.
+	// Search for FileVer, e.g. `e/app~fv=00000000.min.js.map`. Must
+	// match whole file name since if just matching substring files with
+	// alternative extensions, e.g. `min.js` vs `min.js.map`, will match when they
+	// shouldn't.
+	base := VerAnySizeRegexC.ReplaceAllString(filepath.Base(filePath), "")
 	anyVersionReg := regexp.MustCompile(genFileVerRegex(base, c))
 	matchedExisting := false
 	// Even though there should only ever be one existing versioned output, this
@@ -448,8 +434,8 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 		}
 
 		// Existing file is a different version than new file.  Delete Existing.
-		del := c.Dist + string(os.PathSeparator) + rDir + string(os.PathSeparator) + f
-		//log.Debug().Msgf("Delete matched: %s file: %s", escapedAnyVersion, del)
+		del := c.Dist + string(os.PathSeparator) + rPath + string(os.PathSeparator) + f
+		//fmt.Printf("Delete matched: %s file: %s", escapedAnyVersion, del)
 		err := os.Remove(del)
 		if err != nil {
 			return "", err
@@ -458,25 +444,25 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 	}
 
 	if matchedExisting { // Match with current FileVer found.  Don't re-copy.
-		return outFilePath, nil
+		return fileVer, nil
 	}
 
 	// Copy into output directory.
 	in := c.Src + string(os.PathSeparator) + filePath
-	//log.Debug().Msgf("in: %s", in)
+	//fmt.Printf("in: %s", in)
 	input, err := os.ReadFile(in)
 	if err != nil {
 		return "", err
 	}
 
-	o := c.Dist + string(os.PathSeparator) + outFilePath
-	//log.Debug().Msgf("Writing copy to: %s", o)
+	o := c.Dist + string(os.PathSeparator) + fileVer
+	//fmt.Printf("Writing copy to: %s", o)
 	err = os.WriteFile(o, input, 0644)
 	if err != nil {
 		return "", err
 	}
 
-	return outFilePath, nil
+	return fileVer, nil
 }
 
 func genSrcReg(c *Config) {
@@ -521,6 +507,6 @@ func HashFile(path string, alg coze.HshAlg) (digest coze.B64, file *[]byte, err 
 	if err != nil {
 		return nil, nil, err
 	}
-	//log.Debug().Msgf("FileDigest: %X", d)
+	//fmt.Printf("FileDigest: %X", d)
 	return coze.B64(d), &fileBytes, nil
 }

@@ -42,12 +42,6 @@ func ExampleFileVerPathReg() {
 	//[test_1~fv=00000000.js /test_2~fv=00000000.js /subdir/test_3~fv=00000000.js /subdir/test_4~fv=00000000.js]
 }
 
-func ExamplePathParts() {
-	fmt.Println(PathParts("..subdir/test_5~fv=wwjNHrIw.js"))
-	// Output:
-	// ..subdir/ test_5~fv=wwjNHrIw.js
-}
-
 // Example VersionReplace with mid version with "dummy" input files.
 // go test -run '^ExampleVersionReplace$'
 func ExampleVersionReplace() {
@@ -60,7 +54,7 @@ func ExampleVersionReplace() {
 	PrintFile(dummyDist + "/" + c.Info.VersionedFiles[0])
 
 	// Output:
-	// ***WARNING*** Digest empty for test_3.js
+	// ***WARNING*** Digest empty or too small for test_3.js
 	// {
 	// 	"Src": "test/dummy/src",
 	// 	"SrcFiles": [
@@ -88,6 +82,7 @@ func ExampleVersionReplace() {
 	// 		],
 	// 		"Index": null,
 	// 		"TotalSourceReplaces": 15,
+	// 		"CheckedFilePaths": null,
 	// 		"UpdatedFilePaths": [
 	// 			"test/dummy/dist/subdir/test_3~fv=_X83uO__.js",
 	// 			"test/dummy/dist/subdir/test_4~fv=GJIrg6k1.js",
@@ -102,7 +97,6 @@ func ExampleVersionReplace() {
 	// import * as test2 from '../test_2~fv=BOl7h9TM.js';
 	// import * as test4 from '../subdir/test_4~fv=GJIrg6k1.js';
 	// ////////////////
-
 }
 
 // // TestVersionReplace VersionReplace with mid version with "dummy" input files.
@@ -212,6 +206,22 @@ func Example_noDummy() {
 	// [test_1~fv=qlJgGoFM.js test_2~fv=8RBMUSqr.js subdir/test_3~fv=_X83uO__.js subdir/test_4~fv=2lfgwhXI.js]
 }
 
+// func Test_noDummy(t *testing.T) {
+// 	c := &Config{
+// 		Src:  dummyNoSrc,
+// 		Dist: dummyNoDist,
+// 		SrcFiles: []string{
+// 			"test_1.js",
+// 			"test_2.js",
+// 			"subdir/test_3.js",
+// 			"subdir/test_4.js",
+// 		},
+// 	}
+// 	Version(c)
+// 	// TODO Replace does not appear to be working.
+// 	fmt.Println(c.Info.VersionedFiles)
+// }
+
 func ExampleListFilesInPath() {
 	f, err := ListFilesInPath(dummyNoSrc)
 	if err != nil {
@@ -253,10 +263,9 @@ func ExampleCleanVersionFiles() {
 	fmt.Println(c.Info.VersionedFiles)
 	fmt.Println(f)
 	// Output:
-	// ***WARNING*** Digest empty for test_3.js
+	// ***WARNING*** Digest empty or too small for test_3.js
 	// [subdir/test_3~fv=_X83uO__.js subdir/test_4~fv=GJIrg6k1.js test_1~fv=vPCb4GVO.js test_2~fv=BOl7h9TM.js]
 	// [not_versioned_example.txt]
-
 }
 
 func Test_clean(t *testing.T) {
