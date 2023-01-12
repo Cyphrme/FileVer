@@ -7,26 +7,27 @@ import (
 
 // Values are empty when not applicable. See README for naming.
 type PathParts struct {
-	FullPath string //  Relative or absolute. E.g. `e/app~fv=4mIbJJPq.min.js`.
-	Path     string `json:",omitempty"` // Just the path, relative or absolute.  E.g. `e/`.
-	File     string `json:",omitempty"` // Just the file.  E.g. `app~fv=4mIbJJPq.min.js`.
-	Base     string `json:",omitempty"` // No path, extension, or version. E.g. `app`.
-	Ext      string `json:",omitempty"` // Extension.  Includes "sub" extensions.  E.g. `min.js`.
-	BaseExt  string `json:",omitempty"` // Base Extension.  E.g. `.js`
+	Full    string //  The full path, relative or absolute. E.g. `e/app~fv=4mIbJJPq.min.js`.
+	Dir     string `json:",omitempty"` // Just the directory, relative or absolute, without the file.  E.g. `e/`.
+	File    string `json:",omitempty"` // Just the file, no directory.  E.g. `app~fv=4mIbJJPq.min.js`.
+	Base    string `json:",omitempty"` // No dir, extension, or version. E.g. `app`.
+	Ext     string `json:",omitempty"` // Extension.  Includes "sub" extensions.  E.g. `min.js`.
+	BaseExt string `json:",omitempty"` // Base Extension.  E.g. `.js`
 
 	// FileVer specific.
 	FileVer  string `json:",omitempty"` // E.g. `app~fv=4mIbJJPq.min.js`.
-	BarePath string `json:",omitempty"` // E.g. `e/app.min.js`
-	BareFile string `json:",omitempty"` // No path or version.  E.g. `app.min.js`.
-	Bare     string `json:",omitempty"` // No path, version, or extension.  E.g. `app`.
 	DelimVer string `json:",omitempty"` // E.g. `~fv=4mIbJJPq`.
 	Version  string `json:",omitempty"` // E.g. `4mIbJJPq`.
+	BarePath string `json:",omitempty"` // E.g. `e/app.min.js`
+	BareFile string `json:",omitempty"` // No dir or version.  E.g. `app.min.js`.
+	Bare     string `json:",omitempty"` // No dir, version, or extension.  E.g. `app`.
 }
 
-// Populate populates PathParts from FullPath.  Populates FileVer specific
-// fields only if FileVer exists.
+// Populate populates PathParts from FullPath.  Populates FileVer only if
+// FileVer exists, but other FileVer specific fields will populate regardless
+// (such as Bare).
 func (p *PathParts) Populate() {
-	p.Path, p.File = PathCut(p.FullPath)
+	p.Dir, p.File = PathCut(p.Full)
 
 	// strings.Cut splits on first instance of char but excludes first "." in ext.
 	var found bool
@@ -48,12 +49,12 @@ func (p *PathParts) Populate() {
 		p.FileVer = p.File
 	}
 	p.BareFile = VerAnySizeRegexC.ReplaceAllString(p.File, "")
-	p.BarePath = p.Path + p.BareFile
+	p.BarePath = p.Dir + p.BareFile
 	p.Bare = VerAnySizeRegexC.ReplaceAllString(p.Base, "")
 }
 
 func Populated(fullPath string) *PathParts {
-	p := &PathParts{FullPath: fullPath}
+	p := &PathParts{Full: fullPath}
 	p.Populate()
 	return p
 }

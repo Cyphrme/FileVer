@@ -6,9 +6,8 @@ distribution. File versioning is essential for browser cache busting for
 Javascript, HTML, CSS, images, and other assets loaded by the browser.  
 
 FileVer has two main functions:
- 1. (Version) Hash versioned files to generate the file version. Placing
-    versioned files, named with the file version, into an output directory.
-    Delete any old versions of that file.  
+ 1. (Version) Hash versioned files and generate FileVer. Place new versioned
+    files into an output directory. Delete any old versions of that file.  
  2. (Replace) In the output directory (`dist`), update references in source
     files to versioned files.
 
@@ -27,8 +26,8 @@ minification, and CSS minification.
 The version string is a digest derived from the content of the file.  
 The default version is 32 bits, 8 character version with a 1 out of 4.2 billion
 chance for collision.   (We considered 7 characters, 1 out of 268 million
-chance, but that's 5.25 bytes and it's better to use a whole byte. We consider 6
-characters to be too small with a 1 out of 16 million chance of collision.
+chance, but it's better to use a whole byte instead of 5.25 bytes. We consider 6
+characters to be too small with a 1 out of 16 million chance of collision.)
 
 The whole version is 12 characters long; the deliminator `~` is 1 character ,
 identifier `fv` is 2 characters, key/value delimiter `=` is 1 character, and 8
@@ -44,7 +43,7 @@ General naming (not specific to FileVer)
 | Name                                  | Example                     |
 | ------------------------------------- | --------------------------- |
 | Full path                             | e/app.min.js                |
-| Path                                  | e/                          |
+| Directory (dir)                       | e/                          |
 | File (filename)                       | app.min.js                  |
 | Base                                  | app                         |
 | Extension                             | .min.js                     |
@@ -54,7 +53,7 @@ Naming for a FileVer example
 | Name                                  | Example                     |
 | ------------------------------------- | --------------------------- |
 | Full path                             | `e/app~fv=4mIbJJPq.min.js`  |
-| Path                                  | `e/`                        |
+| Dir                                   | `e/`                        |
 | File (filename)                       | `app~fv=4mIbJJPq.min.js`    |
 | Base                                  | `app~fv=4mIbJJPq`           |
 | Extension                             | `.min.js`                   |
@@ -81,7 +80,11 @@ pathing.  For the path `/example/app~fv=4mIbJJPq.min.js`, the base is simply
 `app` with no extension or pathing.  
 
 Extension includes all sub extensions and a preceding `.`.  For
-`app~fv=4mIbJJPq.min.js.map` the extension is `.min.js.map`
+`app~fv=4mIbJJPq.min.js.map` the extension is `.min.js.map`.
+
+The base extension is always the last extension if present.  It may be equal to
+extension.  For example, a file `app.js` will have a base extension and
+extension of `.js`
 
 ### Vocabulary
 - `dist` -"distribution": The destination directory.  
@@ -98,14 +101,14 @@ Extension includes all sub extensions and a preceding `.`.  For
 ## Directory Structure
 
 ```
-your_directory
+parent_directory
   ⎿ src
   ⎿ dist
 ```
-Input `src` directory structure is preserved in `dist`.
-FileVer will version files in `src`, output to `dist`, and perform Replace() in
-dist. FileVer by default recreates the directory structure of `src` into `dist`.
-If this is not desired, see examples for "manual" versioning.  
+Input `src` directory structure is preserved in `dist`. FileVer will version
+files in `src`, output to `dist`, and perform Replace() in dist. FileVer by
+default recreates the directory structure of `src` into `dist`. If this is not
+desired, see examples for "manual" versioning.  
 
 Files that are not concerned with file versioning should be placed directly in
 `dist`.  

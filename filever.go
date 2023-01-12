@@ -250,7 +250,7 @@ func genFileVer(file, digest string, c *Config) (filever string, dummied bool) {
 		dummied = true
 	}
 	p := Populated(file)
-	fv := p.Path + p.Bare + Delim + digest[:VersionSize] + p.Ext
+	fv := p.Dir + p.Bare + Delim + digest[:VersionSize] + p.Ext
 	return fv, dummied
 }
 
@@ -392,7 +392,7 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 		return "", fmt.Errorf("Dummied version returned %s for %s\n", fileVer, filePath)
 	}
 	p := Populated(filePath)
-	rPath := strings.Replace(p.Path, c.Src, "", 1)
+	rPath := strings.Replace(p.Dir, c.Src, "", 1)
 	distRDir := c.Dist + string(os.PathSeparator) + rPath
 	//fmt.Printf("FileVer: %s, rPath: %s, distRDir: %s\n", fileVer, rPath, distRDir)
 
