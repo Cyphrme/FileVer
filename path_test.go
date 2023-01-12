@@ -2,7 +2,7 @@ package filever
 
 import "fmt"
 
-func ExamplePathParts_Populate() {
+func ExamplePopulated() {
 
 	paths := []string{
 		"app",
@@ -20,11 +20,8 @@ func ExamplePathParts_Populate() {
 	}
 
 	for _, v := range paths {
-
-		p := PathParts{FullPath: v}
-		p.Populate()
+		p := Populated(v)
 		fmt.Printf("%+v\n", p)
-
 	}
 
 	// Output:

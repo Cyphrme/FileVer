@@ -84,14 +84,14 @@ Extension includes all sub extensions and a preceding `.`.  For
 `app~fv=4mIbJJPq.min.js.map` the extension is `.min.js.map`
 
 ### Vocabulary
-- dist -"distribution": The destination directory.  
-- Versioned file: A file with a file version, e.g. app~fv=4mIbJJPq.min.js.
-- Delimitor:  The FileVer delimiter string is (by default) `~fv=`.  The ending
-  delimitor for a Version is any non-base64 character, such as another
+- `dist` -"distribution": The destination directory.  
+- Versioned file: A file with a file version, e.g. `app~fv=4mIbJJPq.min.js`.
+- Delimiter:  The FileVer delimiter string is (by default) `~fv=`.  The ending
+  delimiter for a Version is any non-base64 character, such as another
   "~" character.  This follows the standard URL Query and URL Fragment Query
   notation.  
-- non-dummy versioned files: a file with a digest as the version, e.g.
-  app.min.js~fv=4mIbJJPq.
+- Non-dummy versioned files: a file with a digest as the version, e.g.
+  `app~fv=4mIbJJPq.min.js`.
 
 
 # Pipeline
@@ -125,7 +125,7 @@ Then:
   - modify js source file (file.js)-> 
   - watch is triggered, runs a `.sh` script that invokes 1. esbuild and then 2. FileVer ->
   - esbuild minifies source file, outputs `src/file.min.js`. 
-  - FileVer versions source file and outputs `dist/file.min.js~fv=4mIbJJPq` -> 
+  - FileVer versions source file and outputs `dist/file~fv=4mIbJJPq.min.js` -> 
   - FileVer updates other source code files in `dist` with FileVer (Replace).
 
 
@@ -137,17 +137,17 @@ untouched).
 
 It is correct for Javascript files in `src` to import use this form: 
 
-`import * as test1 from './test_1.js~fv=00000000';`
+`import * as test1 from './test_1~fv=00000000.js';`
 
 FileVer Replace() will update imports in `dist` to point to the correct file.
 
-`import * as test1 from './test_1.js~fv=4WYoW0MN';`
+`import * as test1 from './test_1~fv=4WYoW0MN.js';`
 
 
 | `src` (Input Directory) Import   | `dist` (Output Directory) Import |
 | -------------------------------- | -------------------------        |
-| `app.min.js~fv=00000000`         | `app.min.js~fv=4mIbJJPq`         |
-| `lib.min.js~fv=00000000`         | `lib.min.js~fv=820OsC4y`         | 
+| `app~fv=00000000.min.js`         | `app~fv=4mIbJJPq.min.js`         |
+| `lib~fv=00000000.min.js`         | `lib~fv=820OsC4y.min.js`         | 
 
 
 Note: A consequence of this design is that the versioned files digest will not
@@ -209,7 +209,7 @@ avoid update recursion. Since some formats, like Javascript modules, may refer
 to other versioned files, this risks file version recursion. To avoid this, the
 pipeline is one directional. It's suggested that source files that refer to
 other versioned files use a dummy, constant file version in references, such as
-`app.min.js~fv=00000000`.  Then, after the file version digest is calculated and
+`app~fv=00000000.min.js`.  Then, after the file version digest is calculated and
 placed in the dist dir, the version in other source files is updated with
 Replace().  This has the consequence that the versioned file's name, after
 replace, will not be calculable from the source unless the dummy version is
