@@ -26,9 +26,6 @@ var Delim = "~fv="
 // may be changed as desired.
 var VerRegex = regexp.QuoteMeta(Delim) + `[0-9A-Za-z_-]{` + fmt.Sprint(VersionSize) + `}`
 
-// Compiled VerRegex.
-var VerRegexC *regexp.Regexp
-
 // VerAnySizeRegex is the version string regex for any size version, e.g.
 // (~fv=000). This is especially useful for cleaning out versions that may be of
 // a different size. By default this regex will match multiple versions in a
@@ -36,7 +33,8 @@ var VerRegexC *regexp.Regexp
 // this string:  `test.txt~fv=000~fv=JPq`
 var VerAnySizeRegex = regexp.QuoteMeta(Delim) + `[0-9A-Za-z_-]*`
 
-// Compiled VerAnySizeRegex
+// Compiled Regexes.
+var VerRegexC *regexp.Regexp
 var VerAnySizeRegexC *regexp.Regexp
 
 // FileVerPathReg "midVer" format and should match any path in source files that
@@ -149,7 +147,7 @@ func Version(c *Config) (err error) {
 		}
 		c.Info.VersionedFiles = append(c.Info.VersionedFiles, file)
 		p := Populated(file)
-		c.Info.PV[p.BarePath] = p.Version // Set version,  e.g. "e/app.min.js" = "4WYoW0MN"
+		c.Info.PV[p.BarePath] = p.Version // e.g. "e/app.min.js" = "4WYoW0MN"
 	}
 	return nil
 }
@@ -419,9 +417,7 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 	base := VerAnySizeRegexC.ReplaceAllString(filepath.Base(filePath), "")
 	anyVersionReg := regexp.MustCompile(genFileVerRegex(base, c))
 	matchedExisting := false
-	// Even though there should only ever be one existing versioned output, this
-	// for loop continues even after match, to search for and remove other errant
-	// versioned files.
+
 	for _, f := range files {
 		if !matchedExisting && f == fileVer { // File is the current version.
 			matchedExisting = true
@@ -443,7 +439,7 @@ func FileToFileVerOutputDelete(filePath string, c *Config) (outFilePath string, 
 		// Continue in case of other errant copies.
 	}
 
-	if matchedExisting { // Match with current FileVer found.  Don't re-copy.
+	if matchedExisting { // Don't re-copy is matched with current FileVer.
 		return fileVer, nil
 	}
 
