@@ -4,7 +4,6 @@ import "fmt"
 
 // go test -run ExamplePopulated$
 func ExamplePopulated() {
-
 	paths := []string{
 		"app",
 		"app.js",
@@ -22,10 +21,7 @@ func ExamplePopulated() {
 
 	for _, v := range paths {
 		p := Populated(v)
-
-		//fmt.Printf("%+v\n", p)
 		PrintPretty(p)
-
 	}
 
 	// Output:
@@ -256,5 +252,4 @@ func ExamplePathCut() {
 	// dir: https://cyphr.me/assets/img/ file: cyphrme_long.png
 	// dir: https:// file: localhost:8081
 	// dir: https:// file: localhost:8081
-
 }

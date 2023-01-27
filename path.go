@@ -41,7 +41,6 @@ type PathParts struct {
 // (such as Bare).
 func (p *PathParts) Populate() {
 	p.Dir, p.File = PathCut(p.Full)
-	// fmt.Printfn()
 
 	// strings.Cut splits on first instance of char but excludes first "." in ext.
 	var found bool
@@ -104,7 +103,6 @@ func Populated(fullPath string) *PathParts {
 // If there is an ending separator, e.g. "/" in "https://localhost:8081/", it
 // will be removed.
 func PathCut(path string) (dir, base string) {
-
 	// Remove ending separator if present.
 	lastchar := string(path[len(path)-1])
 	if lastchar == "/" || lastchar == string(os.PathSeparator) {

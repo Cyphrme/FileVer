@@ -73,23 +73,24 @@ Naming for a FileVer example
 
 
 
-	URI Specific
-		https://example.com:8081/bob/joe.txt?name=ferret#nose?name=bob
-		\___/   \______________/\__________/ \_________/ \___________/
-		 |            |              |            |           |
-		scheme     authority        path        query      fragment
-		        \_________/\___/                         \__/\_______/
-		           |       |                              |      |
-		         host     port                          anchor  fquery
-		                                     \_______________________/
-		                                                |
-		                                              quag
-
+URI Specific
+```
+https://example.com:8081/bob/joe.txt?name=ferret#nose?name=bob
+\___/   \______________/\__________/ \_________/ \___________/ 
+  |            |              |            |           |       
+scheme     authority        path        query      fragment    
+        \_________/\___/                         \__/\_______/ 
+           |       |                              |      |     
+          host     port                          anchor  fquery 
+                                    \_______________________/  
+                                               |               
+                                              quag             
+```
 
 Naming for URI Paths
 | Name                 | Example                     |
 | -------------------- | --------------------------- |
-| Full path            | https://cyphr.me:8081/assets/img/cyphrme_long.png  |
+| Full path            | https://cyphr.me:8081/assets/img/cyphrme_long.png |
 | Scheme               | https:                      |
 | Authority            | cyphr.me:8081               |
 | Host                 | cyphr.me                    |
@@ -102,8 +103,8 @@ Naming for URI Paths
 | Quag                 | ?name=ferret#nose?name=bob  |
 
 Additionally, the normal path information will be populated. 
-| Name                 | Example                     |
-| -------------------- | --------------------------- |
+| Name                 | Example                              |
+| -------------------- | ------------------------------------ |
 | Directory (dir)      | https://cyphr.me:8081/assets/img/    |
 | File (filename)      | cyphrme_long.png                     |
 | Base                 | cyphrme_long                         |
