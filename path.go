@@ -1,7 +1,8 @@
 package filever
 
 import (
-	"path/filepath"
+	"net/url"
+	"os"
 	"strings"
 )
 
@@ -21,6 +22,18 @@ type PathParts struct {
 	BarePath string `json:",omitempty"` // E.g. `e/app.min.js`
 	BareFile string `json:",omitempty"` // No dir or version.  E.g. `app.min.js`.
 	Bare     string `json:",omitempty"` // No dir, version, or extension.  E.g. `app`.
+
+	// Example: https://example.com:8081/bob/joe.txt?name=ferret#nose?name=bob
+	Scheme        string `json:",omitempty"` // e.g. `https`
+	Authority     string `json:",omitempty"` // e.g. `example.com:8081`
+	Host          string `json:",omitempty"` // e.g. `example.com`
+	Port          string `json:",omitempty"` // e.g. `:8081`
+	URIPath       string `json:",omitempty"` // e.g. `/bob/joe.txt`
+	Query         string `json:",omitempty"` // e.g. `name=ferret`
+	Fragment      string `json:",omitempty"` // e.g. `nose?name=bob`
+	Anchor        string `json:",omitempty"` // e.g. `nose`
+	FragmentQuery string `json:",omitempty"` // e.g. `?name=bob`
+	Quag          string `json:",omitempty"` // e.g. `?name=ferret#nose?name=bob`
 }
 
 // Populate populates PathParts from FullPath.  Populates FileVer only if
@@ -28,6 +41,7 @@ type PathParts struct {
 // (such as Bare).
 func (p *PathParts) Populate() {
 	p.Dir, p.File = PathCut(p.Full)
+	// fmt.Printfn()
 
 	// strings.Cut splits on first instance of char but excludes first "." in ext.
 	var found bool
@@ -43,7 +57,6 @@ func (p *PathParts) Populate() {
 
 	// FileVer specific
 	p.DelimVer = VerAnySizeRegexC.FindString(p.Base)
-
 	_, p.Version, found = strings.Cut(p.DelimVer, Delim)
 	if found {
 		p.FileVer = p.File
@@ -51,6 +64,31 @@ func (p *PathParts) Populate() {
 	p.BareFile = VerAnySizeRegexC.ReplaceAllString(p.File, "")
 	p.BarePath = p.Dir + p.BareFile
 	p.Bare = VerAnySizeRegexC.ReplaceAllString(p.Base, "")
+
+	// URL.  Will no populate unless scheme is present.
+	u, err := url.Parse(p.Full)
+	if err != nil || u.Scheme == "" {
+		return
+	}
+	p.Scheme = u.Scheme
+	p.Authority = u.Host
+	p.Host, p.Port, found = strings.Cut(u.Host, ":")
+	if found {
+		p.Port = ":" + p.Port // add back ":" 😞
+	}
+	// Do not include the path separator if the path is only the path separator.
+	if u.Path != "/" && u.Path != string(os.PathSeparator) {
+		p.URIPath = u.Path
+	}
+	p.Query = u.RawQuery
+	p.Fragment = u.Fragment // Note: Fragment is not sent by browsers on requests.
+	p.Anchor, p.FragmentQuery, found = strings.Cut(p.Fragment, "?")
+	if p.Query != "" {
+		p.Quag += "?" + p.Query
+	}
+	if p.Fragment != "" {
+		p.Quag += "#" + p.Fragment
+	}
 }
 
 func Populated(fullPath string) *PathParts {
@@ -62,9 +100,28 @@ func Populated(fullPath string) *PathParts {
 // PathCut, from the full path, returns directory path and the file name.  e.g.
 // for `..subdir/test_5~fv=wwjNHrIw.js` returns `..subdir/` and
 // `test_5~fv=wwjNHrIw.js`
+//
+// If there is an ending separator, e.g. "/" in "https://localhost:8081/", it
+// will be removed.
 func PathCut(path string) (dir, base string) {
-	// Alternatively use `string(os.PathSeparator)`
-	base = filepath.Base(path)
-	dir = path[:len(path)-len(base)]
-	return
+
+	// Remove ending separator if present.
+	lastchar := string(path[len(path)-1])
+	if lastchar == "/" || lastchar == string(os.PathSeparator) {
+		path = path[:len(path)-1]
+	}
+
+	scheme, rest, found := strings.Cut(path, "://")
+	if found {
+		d, b := PathCut(rest)
+		return scheme + "://" + d, b
+	}
+
+	li := strings.LastIndex(path, "/")
+	if li > 0 {
+		dir = path[:li+1]
+		base = path[li+1:]
+		return
+	}
+	return "", path
 }

@@ -40,36 +40,76 @@ characters for the base64 version.
 A FileVer is the full file name with a file version.
 
 General naming (not specific to FileVer)
-| Name                                  | Example                     |
-| ------------------------------------- | --------------------------- |
-| Full path                             | e/app.min.js                |
-| Directory (dir)                       | e/                          |
-| File (filename)                       | app.min.js                  |
-| Base                                  | app                         |
-| Extension                             | .min.js                     |
-| Base extension                        | .js                         |
+| Name                                  | Example                   |
+| ------------------------------------- | ------------------------- |
+| Full path                             | e/app.min.js              |
+| Directory (dir)                       | e/                        |
+| File (filename)                       | app.min.js                |
+| Base                                  | app                       |
+| Extension                             | .min.js                   |
+| Base extension                        | .js                       |
 
 Naming for a FileVer example
-| Name                                  | Example                     |
-| ------------------------------------- | --------------------------- |
-| Full path                             | `e/app~fv=4mIbJJPq.min.js`  |
-| Dir                                   | `e/`                        |
-| File (filename)                       | `app~fv=4mIbJJPq.min.js`    |
-| Base                                  | `app~fv=4mIbJJPq`           |
-| Extension                             | `.min.js`                   |
-| Base extension                        | `.js`                       |
-|                                       |                             |
-| Pathed FileVer                        | `e/app~fv=4mIbJJPq.min.js`  |
-| FileVer, versioned file               | `app~fv=4mIbJJPq.min.js`    |
-| Bare path                             | `e/app.min.js`              |
-| Bare file                             | `app.min.js`                |
-| Bare                                  | `app`                       |
-| Version                               | `4mIbJJPq`                  |
-| Delimiter (delim)                     | `~fv=`                      |
-| Delimited (delim'd) version           | `~fv=4mIbJJPq`              |
-| Dummy version (zeroed version)        | `00000000`                  |
-| Delim'd dummy Version                 | `~fv=00000000`              |
-| Dummy versioned file (full dummy)     | `e/app~fv=00000000.min.js`  |
+| Name                                  | Example                   |
+| ------------------------------------- | ------------------------- |
+| Full path                             | e/app~fv=4mIbJJPq.min.js  |
+| Dir                                   | e/                        |
+| File (filename)                       | app~fv=4mIbJJPq.min.js    |
+| Base                                  | app~fv=4mIbJJPq           |
+| Extension                             | .min.js                   |
+| Base extension                        | .js                       |
+|                                       |                           |
+| Pathed FileVer                        | e/app~fv=4mIbJJPq.min.js  |
+| FileVer, versioned file               | app~fv=4mIbJJPq.min.js    |
+| Bare path                             | e/app.min.js              |
+| Bare file                             | app.min.js                |
+| Bare                                  | app                       |
+| Version                               | 4mIbJJPq                  |
+| Delimiter (delim)                     | ~fv=                      |
+| Delimited (delim'd) version           | ~fv=4mIbJJPq              |
+| Dummy version (zeroed version)        | 00000000                  |
+| Delim'd dummy Version                 | ~fv=00000000              |
+| Dummy versioned file (full dummy)     | e/app~fv=00000000.min.js  |
+
+
+
+	URI Specific
+		https://example.com:8081/bob/joe.txt?name=ferret#nose?name=bob
+		\___/   \______________/\__________/ \_________/ \___________/
+		 |            |              |            |           |
+		scheme     authority        path        query      fragment
+		        \_________/\___/                         \__/\_______/
+		           |       |                              |      |
+		         host     port                          anchor  fquery
+		                                     \_______________________/
+		                                                |
+		                                              quag
+
+
+Naming for URI Paths
+| Name                 | Example                     |
+| -------------------- | --------------------------- |
+| Full path            | https://cyphr.me:8081/assets/img/cyphrme_long.png  |
+| Scheme               | https:                      |
+| Authority            | cyphr.me:8081               |
+| Host                 | cyphr.me                    |
+| Port                 | :8081                       |
+| URIPath              | bob/joe.txt                 |
+| Query                | name=ferret                 |
+| Fragment             | nose?name=bob               |
+| Anchor               | nose                        |
+| FragmentQuery        | ?name=bob                   |
+| Quag                 | ?name=ferret#nose?name=bob  |
+
+Additionally, the normal path information will be populated. 
+| Name                 | Example                     |
+| -------------------- | --------------------------- |
+| Directory (dir)      | https://cyphr.me:8081/assets/img/    |
+| File (filename)      | cyphrme_long.png                     |
+| Base                 | cyphrme_long                         |
+| Extension            | .png                                 |
+| Base extension       | .png                                 |
+
 
 
 A FileVer may refer to a file with a dummy version, i.e. `app~fv=00000000.min.js`
