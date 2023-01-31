@@ -1,11 +1,16 @@
 package filever
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // go test -run ExamplePopulated$
 func ExamplePopulated() {
 	paths := []string{
+		"",
+		"/",
 		"app",
+		"/app",
 		"app.js",
 		"app.min.js",
 		"e/app.min.js",
@@ -26,10 +31,25 @@ func ExamplePopulated() {
 
 	// Output:
 	// {
+	// 	"Full": ""
+	// }
+	// {
+	// 	"Full": "/"
+	// }
+	// {
 	// 	"Full": "app",
 	// 	"File": "app",
 	// 	"Base": "app",
 	// 	"BarePath": "app",
+	// 	"BareFile": "app",
+	// 	"Bare": "app"
+	// }
+	// {
+	// 	"Full": "/app",
+	// 	"Dir": "/",
+	// 	"File": "app",
+	// 	"Base": "app",
+	// 	"BarePath": "/app",
 	// 	"BareFile": "app",
 	// 	"Bare": "app"
 	// }
@@ -144,6 +164,7 @@ func ExamplePopulated() {
 
 func ExamplePopulated_uri() {
 	paths := []string{
+		"",
 		"https://cyphr.me/coze",
 		"https://cyphr.me/assets/img/cyphrme_long.png",
 		"https://localhost:8081/",
@@ -153,10 +174,14 @@ func ExamplePopulated_uri() {
 
 	for _, v := range paths {
 		p := Populated(v)
+		//fmt.Println(p)
 		PrintPretty(p)
 	}
 
 	// Output:
+	// {
+	// 	"Full": ""
+	// }
 	// {
 	// 	"Full": "https://cyphr.me/coze",
 	// 	"Dir": "https://cyphr.me/",

@@ -75,14 +75,14 @@ Naming for a FileVer example
 
 URI Specific
 ```
-https://example.com:8081/bob/joe.txt?name=ferret#nose?name=bob
-\___/   \______________/\__________/ \_________/ \___________/ 
+https://cyphr.me:8081/bob/joe.txt?name=ferret#nose?name=bob
+\___/   \___________/\__________/ \_________/ \___________/ 
   |            |              |            |           |       
 scheme     authority        path        query      fragment    
-        \_________/\___/                         \__/\_______/ 
-           |       |                              |      |     
-          host     port                          anchor  fquery 
-                                    \_______________________/  
+        \______/\___/                         \__/\_______/ 
+           |       |                            |      |     
+          host     port                        anchor  fquery 
+                                 \_______________________/  
                                                |               
                                               quag             
 ```
@@ -90,7 +90,7 @@ scheme     authority        path        query      fragment
 Naming for URI Paths
 | Name                 | Example                     |
 | -------------------- | --------------------------- |
-| Full path            | https://cyphr.me:8081/assets/img/cyphrme_long.png |
+| Full path            | https://cyphr.me:8081/bob/joe.txt?name=ferret#nose?name=bob |
 | Scheme               | https:                      |
 | Authority            | cyphr.me:8081               |
 | Host                 | cyphr.me                    |

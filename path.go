@@ -103,6 +103,10 @@ func Populated(fullPath string) *PathParts {
 // If there is an ending separator, e.g. "/" in "https://localhost:8081/", it
 // will be removed.
 func PathCut(path string) (dir, base string) {
+	if path == "" {
+		return "", ""
+	}
+
 	// Remove ending separator if present.
 	lastchar := string(path[len(path)-1])
 	if lastchar == "/" || lastchar == string(os.PathSeparator) {
@@ -116,7 +120,7 @@ func PathCut(path string) (dir, base string) {
 	}
 
 	li := strings.LastIndex(path, "/")
-	if li > 0 {
+	if li >= 0 {
 		dir = path[:li+1]
 		base = path[li+1:]
 		return
