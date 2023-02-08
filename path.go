@@ -8,32 +8,35 @@ import (
 
 // Values are empty when not applicable. See README for naming.
 type PathParts struct {
-	Full    string //  The full path, relative or absolute. E.g. `e/app~fv=4mIbJJPq.min.js`.
-	Dir     string `json:",omitempty"` // Just the directory, relative or absolute, without the file.  E.g. `e/`.
-	File    string `json:",omitempty"` // Just the file, no directory.  E.g. `app~fv=4mIbJJPq.min.js`.
-	Base    string `json:",omitempty"` // No dir, extension, or version. E.g. `app`.
-	Ext     string `json:",omitempty"` // Extension.  Includes "sub" extensions.  E.g. `min.js`.
-	BaseExt string `json:",omitempty"` // Base Extension.  E.g. `.js`
+	Full     string `json:"full"`                //  The full path, relative or absolute. E.g. `e/app~fv=4mIbJJPq.min.js`.
+	Dir      string `json:"dir,omitempty"`       // Just the directory, relative or absolute, without the file.  E.g. `e/`.
+	File     string `json:"file,omitempty"`      // Just the file, no directory.  E.g. `app~fv=4mIbJJPq.min.js`.
+	FileBase string `json:"file_base,omitempty"` // No dir, extension, or version. E.g. `app`.
+	Ext      string `json:"ext,omitempty"`       // Extension.  Includes "sub" extensions.  E.g. `min.js`.
+	ExtBase  string `json:"ext_base,omitempty"`  // Base Extension.  E.g. `.js`
 
 	// FileVer specific.
-	FileVer  string `json:",omitempty"` // E.g. `app~fv=4mIbJJPq.min.js`.
-	DelimVer string `json:",omitempty"` // E.g. `~fv=4mIbJJPq`.
-	Version  string `json:",omitempty"` // E.g. `4mIbJJPq`.
-	BarePath string `json:",omitempty"` // E.g. `e/app.min.js`
-	BareFile string `json:",omitempty"` // No dir or version.  E.g. `app.min.js`.
-	Bare     string `json:",omitempty"` // No dir, version, or extension.  E.g. `app`.
+	FileVer  string `json:"filever,omitempty"`   // E.g. `app~fv=4mIbJJPq.min.js`.
+	DelimVer string `json:"delim_ver,omitempty"` // E.g. `~fv=4mIbJJPq`.
+	Version  string `json:"version,omitempty"`   // E.g. `4mIbJJPq`.
+	BarePath string `json:"bare_path,omitempty"` // E.g. `e/app.min.js`
+	BareFile string `json:"bare_file,omitempty"` // No dir or version.  E.g. `app.min.js`.
+	Bare     string `json:"bare,omitempty"`      // No dir, version, or extension.  E.g. `app`.
 
 	// Example: https://example.com:8081/bob/joe.txt?name=ferret#nose?name=bob
-	Scheme        string `json:",omitempty"` // e.g. `https`
-	Authority     string `json:",omitempty"` // e.g. `example.com:8081`
-	Host          string `json:",omitempty"` // e.g. `example.com`
-	Port          string `json:",omitempty"` // e.g. `:8081`
-	URIPath       string `json:",omitempty"` // e.g. `/bob/joe.txt`
-	Query         string `json:",omitempty"` // e.g. `name=ferret`
-	Fragment      string `json:",omitempty"` // e.g. `nose?name=bob`
-	Anchor        string `json:",omitempty"` // e.g. `nose`
-	FragmentQuery string `json:",omitempty"` // e.g. `?name=bob`
-	Quag          string `json:",omitempty"` // e.g. `?name=ferret#nose?name=bob`
+	// Origin // TODO
+	// PostOrigin //TODO
+	// URIBase   // TODO
+	Scheme        string `json:"scheme,omitempty"`         // e.g. `https`
+	Authority     string `json:"authority,omitempty"`      // e.g. `example.com:8081`
+	Host          string `json:"host,omitempty"`           // e.g. `example.com`
+	Port          string `json:"port,omitempty"`           // e.g. `:8081`
+	URIPath       string `json:"uri_path,omitempty"`       // e.g. `/bob/joe.txt` // TODO think about putting this up above.
+	Query         string `json:"query,omitempty"`          // e.g. `name=ferret`
+	Fragment      string `json:"fragment,omitempty"`       // e.g. `nose?name=bob`
+	Anchor        string `json:"anchor,omitempty"`         // e.g. `nose`
+	FragmentQuery string `json:"fragment_query,omitempty"` // e.g. `?name=bob`
+	Quag          string `json:"quag,omitempty"`           // e.g. `?name=ferret#nose?name=bob`
 }
 
 // Populate populates PathParts from FullPath.  Populates FileVer only if
@@ -44,25 +47,25 @@ func (p *PathParts) Populate() {
 
 	// strings.Cut splits on first instance of char but excludes first "." in ext.
 	var found bool
-	p.Base, p.Ext, found = strings.Cut(p.File, ".")
+	p.FileBase, p.Ext, found = strings.Cut(p.File, ".")
 	if found {
 		p.Ext = "." + p.Ext // add back "." 😞
 	}
 
 	li := strings.LastIndex(p.File, ".")
 	if li > 0 {
-		p.BaseExt = string(p.File[li:])
+		p.ExtBase = string(p.File[li:])
 	}
 
 	// FileVer specific
-	p.DelimVer = VerAnySizeRegexC.FindString(p.Base)
+	p.DelimVer = VerAnySizeRegexC.FindString(p.FileBase)
 	_, p.Version, found = strings.Cut(p.DelimVer, Delim)
 	if found {
 		p.FileVer = p.File
 	}
 	p.BareFile = VerAnySizeRegexC.ReplaceAllString(p.File, "")
 	p.BarePath = p.Dir + p.BareFile
-	p.Bare = VerAnySizeRegexC.ReplaceAllString(p.Base, "")
+	p.Bare = VerAnySizeRegexC.ReplaceAllString(p.FileBase, "")
 
 	// URL.  Will no populate unless scheme is present.
 	u, err := url.Parse(p.Full)

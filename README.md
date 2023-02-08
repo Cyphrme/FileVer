@@ -45,9 +45,9 @@ General naming (not specific to FileVer)
 | Full path                             | e/app.min.js              |
 | Directory (dir)                       | e/                        |
 | File (filename)                       | app.min.js                |
-| Base                                  | app                       |
+| FileBase                              | app                       |
 | Extension                             | .min.js                   |
-| Base extension                        | .js                       |
+| Extension base                        | .js                       |
 
 Naming for a FileVer example
 | Name                                  | Example                   |
@@ -55,13 +55,13 @@ Naming for a FileVer example
 | Full path                             | e/app~fv=4mIbJJPq.min.js  |
 | Dir                                   | e/                        |
 | File (filename)                       | app~fv=4mIbJJPq.min.js    |
-| Base                                  | app~fv=4mIbJJPq           |
+| FileBase                              | app~fv=4mIbJJPq           |
 | Extension                             | .min.js                   |
-| Base extension                        | .js                       |
+| Extension base                        | .js                       |
 |                                       |                           |
 | Pathed FileVer                        | e/app~fv=4mIbJJPq.min.js  |
 | FileVer, versioned file               | app~fv=4mIbJJPq.min.js    |
-| Bare path                             | e/app.min.js              |
+| Bare path                             | e/app.min.js              | // Full path stripped of versioning.  
 | Bare file                             | app.min.js                |
 | Bare                                  | app                       |
 | Version                               | 4mIbJJPq                  |
@@ -75,41 +75,52 @@ Naming for a FileVer example
 
 URI Specific
 ```
+                        Full path                          
+                            |                              
+/▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\
 https://cyphr.me:8081/bob/joe.txt?name=ferret#nose?name=bob
-\___/   \___________/\__________/ \_________/ \___________/ 
-  |            |              |            |           |       
-scheme     authority        path        query      fragment    
-        \______/\___/                         \__/\_______/ 
-           |       |                            |      |     
-          host     port                        anchor  fquery 
-                                 \_______________________/  
-                                               |               
-                                              quag             
+\___/   \___________/\__________/ \_________/ \___________/
+  |            |           |            |           |      
+scheme     authority    URI path       query      fragment  
+        \______/\___/                         \__/\_______/
+           |       |                            |      |   
+          host     port                      anchor  fquery 
+\___________________/\____________________________________/
+          |                            |                   
+        origin                      post origin            
+\_______________________________/\________________________/
+                 |                           |             
+              URI base                      quag            
 ```
 
 Naming for URI Paths
 | Name                 | Example                     |
 | -------------------- | --------------------------- |
 | Full path            | https://cyphr.me:8081/bob/joe.txt?name=ferret#nose?name=bob |
+| Origin               | https://cyphr.me:8081                                       |
+| PostOrigin           | /bob/joe.txt?name=ferret#nose?name=bob                      |
+| URIBase              | https://cyphr.me:8081/bob/joe.txt                           |
+| Quag                 | ?name=ferret#nose?name=bob                                  |
 | Scheme               | https:                      |
 | Authority            | cyphr.me:8081               |
 | Host                 | cyphr.me                    |
 | Port                 | :8081                       |
-| URIPath              | bob/joe.txt                 |
+| URIPath              | /bob/joe.txt                |
 | Query                | name=ferret                 |
 | Fragment             | nose?name=bob               |
 | Anchor               | nose                        |
 | FragmentQuery        | ?name=bob                   |
-| Quag                 | ?name=ferret#nose?name=bob  |
 
 Additionally, the normal path information will be populated. 
 | Name                 | Example                              |
 | -------------------- | ------------------------------------ |
-| Directory (dir)      | https://cyphr.me:8081/assets/img/    |
-| File (filename)      | cyphrme_long.png                     |
-| Base                 | cyphrme_long                         |
-| Extension            | .png                                 |
-| Base extension       | .png                                 |
+| Directory (dir)      | https://cyphr.me:8081/bob/           |
+| File (filename)      | joe.txt                              |
+| FileBase             | joe                                  |
+| Extension (ext)      | .txt                                 |
+| Extension base       | .txt                                 |
+
+
 
 
 

@@ -31,134 +31,134 @@ func ExamplePopulated() {
 
 	// Output:
 	// {
-	// 	"Full": ""
+	// 	"full": ""
 	// }
 	// {
-	// 	"Full": "/"
+	// 	"full": "/"
 	// }
 	// {
-	// 	"Full": "app",
-	// 	"File": "app",
-	// 	"Base": "app",
-	// 	"BarePath": "app",
-	// 	"BareFile": "app",
-	// 	"Bare": "app"
+	// 	"full": "app",
+	// 	"file": "app",
+	// 	"file_base": "app",
+	// 	"bare_path": "app",
+	// 	"bare_file": "app",
+	// 	"bare": "app"
 	// }
 	// {
-	// 	"Full": "/app",
-	// 	"Dir": "/",
-	// 	"File": "app",
-	// 	"Base": "app",
-	// 	"BarePath": "/app",
-	// 	"BareFile": "app",
-	// 	"Bare": "app"
+	// 	"full": "/app",
+	// 	"dir": "/",
+	// 	"file": "app",
+	// 	"file_base": "app",
+	// 	"bare_path": "/app",
+	// 	"bare_file": "app",
+	// 	"bare": "app"
 	// }
 	// {
-	// 	"Full": "app.js",
-	// 	"File": "app.js",
-	// 	"Base": "app",
-	// 	"Ext": ".js",
-	// 	"BaseExt": ".js",
-	// 	"BarePath": "app.js",
-	// 	"BareFile": "app.js",
-	// 	"Bare": "app"
+	// 	"full": "app.js",
+	// 	"file": "app.js",
+	// 	"file_base": "app",
+	// 	"ext": ".js",
+	// 	"ext_base": ".js",
+	// 	"bare_path": "app.js",
+	// 	"bare_file": "app.js",
+	// 	"bare": "app"
 	// }
 	// {
-	// 	"Full": "app.min.js",
-	// 	"File": "app.min.js",
-	// 	"Base": "app",
-	// 	"Ext": ".min.js",
-	// 	"BaseExt": ".js",
-	// 	"BarePath": "app.min.js",
-	// 	"BareFile": "app.min.js",
-	// 	"Bare": "app"
+	// 	"full": "app.min.js",
+	// 	"file": "app.min.js",
+	// 	"file_base": "app",
+	// 	"ext": ".min.js",
+	// 	"ext_base": ".js",
+	// 	"bare_path": "app.min.js",
+	// 	"bare_file": "app.min.js",
+	// 	"bare": "app"
 	// }
 	// {
-	// 	"Full": "e/app.min.js",
-	// 	"Dir": "e/",
-	// 	"File": "app.min.js",
-	// 	"Base": "app",
-	// 	"Ext": ".min.js",
-	// 	"BaseExt": ".js",
-	// 	"BarePath": "e/app.min.js",
-	// 	"BareFile": "app.min.js",
-	// 	"Bare": "app"
+	// 	"full": "e/app.min.js",
+	// 	"dir": "e/",
+	// 	"file": "app.min.js",
+	// 	"file_base": "app",
+	// 	"ext": ".min.js",
+	// 	"ext_base": ".js",
+	// 	"bare_path": "e/app.min.js",
+	// 	"bare_file": "app.min.js",
+	// 	"bare": "app"
 	// }
 	// {
-	// 	"Full": "/a/e/app.min.js",
-	// 	"Dir": "/a/e/",
-	// 	"File": "app.min.js",
-	// 	"Base": "app",
-	// 	"Ext": ".min.js",
-	// 	"BaseExt": ".js",
-	// 	"BarePath": "/a/e/app.min.js",
-	// 	"BareFile": "app.min.js",
-	// 	"Bare": "app"
+	// 	"full": "/a/e/app.min.js",
+	// 	"dir": "/a/e/",
+	// 	"file": "app.min.js",
+	// 	"file_base": "app",
+	// 	"ext": ".min.js",
+	// 	"ext_base": ".js",
+	// 	"bare_path": "/a/e/app.min.js",
+	// 	"bare_file": "app.min.js",
+	// 	"bare": "app"
 	// }
 	// {
-	// 	"Full": "app~fv=4mIbJJPq",
-	// 	"File": "app~fv=4mIbJJPq",
-	// 	"Base": "app~fv=4mIbJJPq",
-	// 	"FileVer": "app~fv=4mIbJJPq",
-	// 	"DelimVer": "~fv=4mIbJJPq",
-	// 	"Version": "4mIbJJPq",
-	// 	"BarePath": "app",
-	// 	"BareFile": "app",
-	// 	"Bare": "app"
+	// 	"full": "app~fv=4mIbJJPq",
+	// 	"file": "app~fv=4mIbJJPq",
+	// 	"file_base": "app~fv=4mIbJJPq",
+	// 	"filever": "app~fv=4mIbJJPq",
+	// 	"delim_ver": "~fv=4mIbJJPq",
+	// 	"version": "4mIbJJPq",
+	// 	"bare_path": "app",
+	// 	"bare_file": "app",
+	// 	"bare": "app"
 	// }
 	// {
-	// 	"Full": "e/app~fv=4mIbJJPq",
-	// 	"Dir": "e/",
-	// 	"File": "app~fv=4mIbJJPq",
-	// 	"Base": "app~fv=4mIbJJPq",
-	// 	"FileVer": "app~fv=4mIbJJPq",
-	// 	"DelimVer": "~fv=4mIbJJPq",
-	// 	"Version": "4mIbJJPq",
-	// 	"BarePath": "e/app",
-	// 	"BareFile": "app",
-	// 	"Bare": "app"
+	// 	"full": "e/app~fv=4mIbJJPq",
+	// 	"dir": "e/",
+	// 	"file": "app~fv=4mIbJJPq",
+	// 	"file_base": "app~fv=4mIbJJPq",
+	// 	"filever": "app~fv=4mIbJJPq",
+	// 	"delim_ver": "~fv=4mIbJJPq",
+	// 	"version": "4mIbJJPq",
+	// 	"bare_path": "e/app",
+	// 	"bare_file": "app",
+	// 	"bare": "app"
 	// }
 	// {
-	// 	"Full": "e/app~fv=4mIbJJPq.js",
-	// 	"Dir": "e/",
-	// 	"File": "app~fv=4mIbJJPq.js",
-	// 	"Base": "app~fv=4mIbJJPq",
-	// 	"Ext": ".js",
-	// 	"BaseExt": ".js",
-	// 	"FileVer": "app~fv=4mIbJJPq.js",
-	// 	"DelimVer": "~fv=4mIbJJPq",
-	// 	"Version": "4mIbJJPq",
-	// 	"BarePath": "e/app.js",
-	// 	"BareFile": "app.js",
-	// 	"Bare": "app"
+	// 	"full": "e/app~fv=4mIbJJPq.js",
+	// 	"dir": "e/",
+	// 	"file": "app~fv=4mIbJJPq.js",
+	// 	"file_base": "app~fv=4mIbJJPq",
+	// 	"ext": ".js",
+	// 	"ext_base": ".js",
+	// 	"filever": "app~fv=4mIbJJPq.js",
+	// 	"delim_ver": "~fv=4mIbJJPq",
+	// 	"version": "4mIbJJPq",
+	// 	"bare_path": "e/app.js",
+	// 	"bare_file": "app.js",
+	// 	"bare": "app"
 	// }
 	// {
-	// 	"Full": "e/app~fv=4mIbJJPq.min.js",
-	// 	"Dir": "e/",
-	// 	"File": "app~fv=4mIbJJPq.min.js",
-	// 	"Base": "app~fv=4mIbJJPq",
-	// 	"Ext": ".min.js",
-	// 	"BaseExt": ".js",
-	// 	"FileVer": "app~fv=4mIbJJPq.min.js",
-	// 	"DelimVer": "~fv=4mIbJJPq",
-	// 	"Version": "4mIbJJPq",
-	// 	"BarePath": "e/app.min.js",
-	// 	"BareFile": "app.min.js",
-	// 	"Bare": "app"
+	// 	"full": "e/app~fv=4mIbJJPq.min.js",
+	// 	"dir": "e/",
+	// 	"file": "app~fv=4mIbJJPq.min.js",
+	// 	"file_base": "app~fv=4mIbJJPq",
+	// 	"ext": ".min.js",
+	// 	"ext_base": ".js",
+	// 	"filever": "app~fv=4mIbJJPq.min.js",
+	// 	"delim_ver": "~fv=4mIbJJPq",
+	// 	"version": "4mIbJJPq",
+	// 	"bare_path": "e/app.min.js",
+	// 	"bare_file": "app.min.js",
+	// 	"bare": "app"
 	// }
 	// {
-	// 	"Full": "/a/e/app~fv=4mIbJJPq.min.js",
-	// 	"Dir": "/a/e/",
-	// 	"File": "app~fv=4mIbJJPq.min.js",
-	// 	"Base": "app~fv=4mIbJJPq",
-	// 	"Ext": ".min.js",
-	// 	"BaseExt": ".js",
-	// 	"FileVer": "app~fv=4mIbJJPq.min.js",
-	// 	"DelimVer": "~fv=4mIbJJPq",
-	// 	"Version": "4mIbJJPq",
-	// 	"BarePath": "/a/e/app.min.js",
-	// 	"BareFile": "app.min.js",
-	// 	"Bare": "app"
+	// 	"full": "/a/e/app~fv=4mIbJJPq.min.js",
+	// 	"dir": "/a/e/",
+	// 	"file": "app~fv=4mIbJJPq.min.js",
+	// 	"file_base": "app~fv=4mIbJJPq",
+	// 	"ext": ".min.js",
+	// 	"ext_base": ".js",
+	// 	"filever": "app~fv=4mIbJJPq.min.js",
+	// 	"delim_ver": "~fv=4mIbJJPq",
+	// 	"version": "4mIbJJPq",
+	// 	"bare_path": "/a/e/app.min.js",
+	// 	"bare_file": "app.min.js",
+	// 	"bare": "app"
 	// }
 }
 
@@ -180,76 +180,76 @@ func ExamplePopulated_uri() {
 
 	// Output:
 	// {
-	// 	"Full": ""
+	// 	"full": ""
 	// }
 	// {
-	// 	"Full": "https://cyphr.me/coze",
-	// 	"Dir": "https://cyphr.me/",
-	// 	"File": "coze",
-	// 	"Base": "coze",
-	// 	"BarePath": "https://cyphr.me/coze",
-	// 	"BareFile": "coze",
-	// 	"Bare": "coze",
-	// 	"Scheme": "https",
-	// 	"Authority": "cyphr.me",
-	// 	"Host": "cyphr.me",
-	// 	"URIPath": "/coze"
+	// 	"full": "https://cyphr.me/coze",
+	// 	"dir": "https://cyphr.me/",
+	// 	"file": "coze",
+	// 	"file_base": "coze",
+	// 	"bare_path": "https://cyphr.me/coze",
+	// 	"bare_file": "coze",
+	// 	"bare": "coze",
+	// 	"scheme": "https",
+	// 	"authority": "cyphr.me",
+	// 	"host": "cyphr.me",
+	// 	"uri_path": "/coze"
 	// }
 	// {
-	// 	"Full": "https://cyphr.me/assets/img/cyphrme_long.png",
-	// 	"Dir": "https://cyphr.me/assets/img/",
-	// 	"File": "cyphrme_long.png",
-	// 	"Base": "cyphrme_long",
-	// 	"Ext": ".png",
-	// 	"BaseExt": ".png",
-	// 	"BarePath": "https://cyphr.me/assets/img/cyphrme_long.png",
-	// 	"BareFile": "cyphrme_long.png",
-	// 	"Bare": "cyphrme_long",
-	// 	"Scheme": "https",
-	// 	"Authority": "cyphr.me",
-	// 	"Host": "cyphr.me",
-	// 	"URIPath": "/assets/img/cyphrme_long.png"
+	// 	"full": "https://cyphr.me/assets/img/cyphrme_long.png",
+	// 	"dir": "https://cyphr.me/assets/img/",
+	// 	"file": "cyphrme_long.png",
+	// 	"file_base": "cyphrme_long",
+	// 	"ext": ".png",
+	// 	"ext_base": ".png",
+	// 	"bare_path": "https://cyphr.me/assets/img/cyphrme_long.png",
+	// 	"bare_file": "cyphrme_long.png",
+	// 	"bare": "cyphrme_long",
+	// 	"scheme": "https",
+	// 	"authority": "cyphr.me",
+	// 	"host": "cyphr.me",
+	// 	"uri_path": "/assets/img/cyphrme_long.png"
 	// }
 	// {
-	// 	"Full": "https://localhost:8081/",
-	// 	"Dir": "https://",
-	// 	"File": "localhost:8081",
-	// 	"Base": "localhost:8081",
-	// 	"BarePath": "https://localhost:8081",
-	// 	"BareFile": "localhost:8081",
-	// 	"Bare": "localhost:8081",
-	// 	"Scheme": "https",
-	// 	"Authority": "localhost:8081",
-	// 	"Host": "localhost",
-	// 	"Port": ":8081"
+	// 	"full": "https://localhost:8081/",
+	// 	"dir": "https://",
+	// 	"file": "localhost:8081",
+	// 	"file_base": "localhost:8081",
+	// 	"bare_path": "https://localhost:8081",
+	// 	"bare_file": "localhost:8081",
+	// 	"bare": "localhost:8081",
+	// 	"scheme": "https",
+	// 	"authority": "localhost:8081",
+	// 	"host": "localhost",
+	// 	"port": ":8081"
 	// }
 	// {
-	// 	"Full": "https://localhost:8081",
-	// 	"Dir": "https://",
-	// 	"File": "localhost:8081",
-	// 	"Base": "localhost:8081",
-	// 	"BarePath": "https://localhost:8081",
-	// 	"BareFile": "localhost:8081",
-	// 	"Bare": "localhost:8081",
-	// 	"Scheme": "https",
-	// 	"Authority": "localhost:8081",
-	// 	"Host": "localhost",
-	// 	"Port": ":8081"
+	// 	"full": "https://localhost:8081",
+	// 	"dir": "https://",
+	// 	"file": "localhost:8081",
+	// 	"file_base": "localhost:8081",
+	// 	"bare_path": "https://localhost:8081",
+	// 	"bare_file": "localhost:8081",
+	// 	"bare": "localhost:8081",
+	// 	"scheme": "https",
+	// 	"authority": "localhost:8081",
+	// 	"host": "localhost",
+	// 	"port": ":8081"
 	// }
 	// {
-	// 	"Full": "sftp://example.com/joe/bob/file.txt",
-	// 	"Dir": "sftp://example.com/joe/bob/",
-	// 	"File": "file.txt",
-	// 	"Base": "file",
-	// 	"Ext": ".txt",
-	// 	"BaseExt": ".txt",
-	// 	"BarePath": "sftp://example.com/joe/bob/file.txt",
-	// 	"BareFile": "file.txt",
-	// 	"Bare": "file",
-	// 	"Scheme": "sftp",
-	// 	"Authority": "example.com",
-	// 	"Host": "example.com",
-	// 	"URIPath": "/joe/bob/file.txt"
+	// 	"full": "sftp://example.com/joe/bob/file.txt",
+	// 	"dir": "sftp://example.com/joe/bob/",
+	// 	"file": "file.txt",
+	// 	"file_base": "file",
+	// 	"ext": ".txt",
+	// 	"ext_base": ".txt",
+	// 	"bare_path": "sftp://example.com/joe/bob/file.txt",
+	// 	"bare_file": "file.txt",
+	// 	"bare": "file",
+	// 	"scheme": "sftp",
+	// 	"authority": "example.com",
+	// 	"host": "example.com",
+	// 	"uri_path": "/joe/bob/file.txt"
 	// }
 }
 
