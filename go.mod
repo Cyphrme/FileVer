@@ -38,12 +38,12 @@ go 1.19
 
 replace (
 	github.com/cyphrme/coze => ../coze
-	github.com/cyphrme/watch => ../watch
+	github.com/cyphrme/watchmod => ../watchmod
 )
 
 require (
 	github.com/cyphrme/coze v0.0.0-00010101000000-000000000000
-	github.com/cyphrme/watch v0.0.0-00010101000000-000000000000
+	github.com/cyphrme/watchmod v0.0.0-00010101000000-000000000000
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 

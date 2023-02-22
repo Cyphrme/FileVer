@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/cyphrme/watch"
+	"github.com/cyphrme/watchmod"
 )
 
 // Each test that writes files has its own directory, so test outputs can be
@@ -116,10 +116,10 @@ func Example_watchVersionAndReplace() {
 	// Set up and test with Watch. Normally (outside of testing) watch must call
 	// filever.  For testing, filever will call watch so that `go test` works.
 	// Also see notes in `watch_src.sh`
-	watch.ParseFlags()
-	watch.FC.Daemon = false
-	watch.FC.ConfigPath = "test/watch.json5"
-	watch.Run()
+	watchmod.ParseFlags()
+	watchmod.FC.Daemon = false
+	watchmod.FC.ConfigPath = "test/watch.json5"
+	watchmod.Run()
 
 	// Normal FileVer setup.
 	c := &Config{Src: watchSrc, Dist: watchDist}

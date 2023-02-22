@@ -11,7 +11,7 @@ FileVer has two main functions:
  2. (Replace) In the output directory (`dist`), update references in source
     files to versioned files.
 
-We recommend using FileVer in conjunction with [watch][watch] and once
+We recommend using FileVer in conjunction with [watchmod][watchmod] and once
 configured, a file change will trigger a global update of file versions and
 references in source files, making development fast and painless. Compared to
 other methods, FileVer shines when source files refer to versioned files and
@@ -170,7 +170,7 @@ Directories `src` and `dist` may be named as desired.
 
 ## Development Pipeline
 The suggested pipeline is to configure `watch` to watch relevant source files.
-1. Use [watch][watch] to watch specific files for change.
+1. Use [watchmod][watchmod] to watch specific files for change.
 2. On file change, configure `watch` to run a script that does (esbuild ->
 FileVer). FileVer is responsible for hashing the updated file, placing it into
 the dist directory, and update any source files references to the updated file
@@ -178,7 +178,7 @@ in `dist`.
 
 Then:
   - modify js source file (file.js)-> 
-  - watch is triggered, runs a `.sh` script that invokes 1. esbuild and then 2. FileVer ->
+  - watchmod is triggered, runs a `.sh` script that invokes 1. esbuild and then 2. FileVer ->
   - esbuild minifies source file, outputs `src/file.min.js`. 
   - FileVer versions source file and outputs `dist/file~fv=4mIbJJPq.min.js` -> 
   - FileVer updates other source code files in `dist` with FileVer (Replace).
@@ -294,5 +294,5 @@ FileVer is released under The 3-Clause BSD License.
 reserved Cypherpunk, LLC and may not be used without permission.
 
 
-[watch]: https://github.com/Cyphrme/watch
+[watch]: https://github.com/Cyphrme/watchmod
 [ETag]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag

@@ -1,12 +1,12 @@
-// See https://github.com/Cyphrme/watch
+// See https://github.com/Cyphrme/watchmod
 // Run:
 //
-// `cd filever/test && watch`
+// `cd filever/test && watchmod`
 //
-// Alternatively: `watch -config=test/watch.json5`
+// Alternatively: `watchmod -config=test/watchmod.json5`
 {
 	"WatchCommand": {
-		"test/watch/src/test_1.js": "test/watch_src.sh",
+		"test/watchmod/src/test_1.js": "test/watchmod_src.sh",
 	},
 	"ExcludeStrings": [
 		"min.js",
