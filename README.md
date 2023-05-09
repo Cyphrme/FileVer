@@ -294,5 +294,5 @@ FileVer is released under The 3-Clause BSD License.
 reserved Cypherpunk, LLC and may not be used without permission.
 
 
-[watch]: https://github.com/Cyphrme/watchmod
+[watchmod]: https://github.com/Cyphrme/watchmod
 [ETag]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
