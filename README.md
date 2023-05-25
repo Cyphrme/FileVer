@@ -101,7 +101,7 @@ Naming for URI Paths
 | PostOrigin           | /bob/joe.txt?name=ferret#nose?name=bob                      |
 | URIBase              | https://cyphr.me:8081/bob/joe.txt                           |
 | Quag                 | ?name=ferret#nose?name=bob                                  |
-| Scheme               | https:                      |
+| Scheme               | https                       |
 | Authority            | cyphr.me:8081               |
 | Host                 | cyphr.me                    |
 | Port                 | :8081                       |
