@@ -38,11 +38,13 @@ go 1.19
 
 replace (
 	github.com/cyphrme/coze => ../coze
+	github.com/cyphrme/path => ../path
 	github.com/cyphrme/watchmod => ../watchmod
 )
 
 require (
-	github.com/cyphrme/coze v0.0.0-00010101000000-000000000000
+	github.com/cyphrme/coze v0.0.5
+	github.com/cyphrme/path v0.0.0-00010101000000-000000000000
 	github.com/cyphrme/watchmod v0.0.0-00010101000000-000000000000
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
@@ -50,6 +52,6 @@ require (
 require (
 	github.com/DisposaBoy/JsonConfigReader v0.0.0-20201129172854-99cf318d67e7 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
-	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect
+	golang.org/x/crypto v0.8.0 // indirect
+	golang.org/x/sys v0.7.0 // indirect
 )

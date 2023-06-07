@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/cyphrme/coze"
+	path "github.com/cyphrme/path"
 	"golang.org/x/exp/slices"
 )
 
@@ -257,7 +258,7 @@ func genFileVer(file, digest string, c *Config) (filever string, dummied bool) {
 // should be the bare relative file path.  E.g. `subdir/test_3.js` or
 // `test_1.js`.
 func genFileVerRegex(file string, c *Config) (regex string) {
-	dir, base := PathCut(file)
+	dir, base := path.PathCut(file)
 	// strings.Cut splits on first instance.  Resulting excludes match.
 	baseWithoutExt, ext, _ := strings.Cut(base, ".")
 	return "(" + regexp.QuoteMeta(dir+baseWithoutExt) + VerAnySizeRegex + "." + ext + ")"
