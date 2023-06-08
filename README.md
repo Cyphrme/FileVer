@@ -1,25 +1,25 @@
 # FileVer
 -------------------------------------
 
-FileVer (File Version) automatically versions files for packaging and
+File versioning package `filever` automatically versions files for packaging and
 distribution. File versioning is essential for browser cache busting for
 Javascript, HTML, CSS, images, and other assets loaded by the browser.  
 
-FileVer has two main functions:
- 1. (Version) Hash versioned files and generate FileVer. Place new versioned
+`filever` has two main functions:
+ 1. (Version) Hash versioned files and generate filever. Place new versioned
     files into an output directory. Delete any old versions of that file.  
  2. (Replace) In the output directory (`dist`), update references in source
     files to versioned files.
 
-We recommend using FileVer in conjunction with [watchmod][watchmod] and once
+We recommend using `filever` in conjunction with [watchmod][watchmod] and once
 configured, a file change will trigger a global update of file versions and
 references in source files, making development fast and painless. Compared to
-other methods, FileVer shines when source files refer to versioned files and
+other methods, `filever` shines when source files refer to versioned files and
 when file contents are frequently updated and changed.
 
-FileVer may be used in pipelines that involves these keywords:
-TypeScript, Sass, Go Templates, handlebars, Javascript minification, HTML
-minification, and CSS minification.
+`filever` may be used in pipelines that involves these keywords: TypeScript,
+Sass, Go Templates, handlebars, Javascript minification, HTML minification, and
+CSS minification.
 
 
 # Version
@@ -37,19 +37,12 @@ characters for the base64 version.
 
 
 # Naming
-A FileVer is the full file name with a file version.
+See package [path][path] for file and URI path naming.  A filever is the full
+file name with a file version.
 
-General naming (not specific to FileVer)
-| Name                                  | Example                   |
-| ------------------------------------- | ------------------------- |
-| Full path                             | e/app.min.js              |
-| Directory (dir)                       | e/                        |
-| File (filename)                       | app.min.js                |
-| FileBase                              | app                       |
-| Extension                             | .min.js                   |
-| Extension base                        | .js                       |
 
-Naming for a FileVer example
+
+General naming not specific to `filever`:
 | Name                                  | Example                   |
 | ------------------------------------- | ------------------------- |
 | Full path                             | e/app~fv=4mIbJJPq.min.js  |
@@ -58,10 +51,13 @@ Naming for a FileVer example
 | FileBase                              | app~fv=4mIbJJPq           |
 | Extension                             | .min.js                   |
 | Extension base                        | .js                       |
-|                                       |                           |
-| Pathed FileVer                        | e/app~fv=4mIbJJPq.min.js  |
-| FileVer, versioned file               | app~fv=4mIbJJPq.min.js    |
-| Bare path                             | e/app.min.js              | // Full path stripped of versioning.  
+
+`filever` specific naming
+| Name                                  | Example                   |
+| ------------------------------------- | ------------------------- |
+| Pathed filever                        | e/app~fv=4mIbJJPq.min.js  |
+| Filever                               | app~fv=4mIbJJPq.min.js    |
+| Bare path                             | e/app.min.js              | 
 | Bare file                             | app.min.js                |
 | Bare                                  | app                       |
 | Version                               | 4mIbJJPq                  |
@@ -71,63 +67,12 @@ Naming for a FileVer example
 | Delim'd dummy Version                 | ~fv=00000000              |
 | Dummy versioned file (full dummy)     | e/app~fv=00000000.min.js  |
 
+Bare path is the full path stripped of versioning.  
 
+A filever may refer to a file with a dummy version, i.e.
+`app~fv=00000000.min.js` is a legitimate filever.  
 
-URI Specific
-```
-                        Full path                          
-                            |                              
-/‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
-https://cyphr.me:8081/bob/joe.txt?name=ferret#nose?name=bob
-\___/   \___________/\__________/ \_________/ \___________/
-  |            |           |            |           |      
-scheme     authority    URI path       query      fragment  
-        \______/\___/                         \__/\_______/
-           |       |                            |      |   
-          host     port                      anchor  fquery 
-\___________________/\____________________________________/
-          |                            |                   
-        origin                      post origin            
-\_______________________________/\________________________/
-                 |                           |             
-              URI base                      quag            
-```
-
-Naming for URI Paths
-| Name                 | Example                     |
-| -------------------- | --------------------------- |
-| Full path            | https://cyphr.me:8081/bob/joe.txt?name=ferret#nose?name=bob |
-| Origin               | https://cyphr.me:8081                                       |
-| PostOrigin           | /bob/joe.txt?name=ferret#nose?name=bob                      |
-| URIBase              | https://cyphr.me:8081/bob/joe.txt                           |
-| Quag                 | ?name=ferret#nose?name=bob                                  |
-| Scheme               | https                       |
-| Authority            | cyphr.me:8081               |
-| Host                 | cyphr.me                    |
-| Port                 | :8081                       |
-| URIPath              | /bob/joe.txt                |
-| Query                | name=ferret                 |
-| Fragment             | nose?name=bob               |
-| Anchor               | nose                        |
-| FragmentQuery        | ?name=bob                   |
-
-Additionally, the normal path information will be populated. 
-| Name                 | Example                              |
-| -------------------- | ------------------------------------ |
-| Directory (dir)      | https://cyphr.me:8081/bob/           |
-| File (filename)      | joe.txt                              |
-| FileBase             | joe                                  |
-| Extension (ext)      | .txt                                 |
-| Extension base       | .txt                                 |
-
-
-
-
-
-A FileVer may refer to a file with a dummy version, i.e. `app~fv=00000000.min.js`
-is a FileVer.  
-
-A base name of a FileVer is everything before the `~` character and excludes
+The base name of a filever is everything before the `~` character and excludes
 pathing.  For the path `/example/app~fv=4mIbJJPq.min.js`, the base is simply
 `app` with no extension or pathing.  
 
@@ -141,7 +86,7 @@ extension of `.js`
 ### Vocabulary
 - `dist` -"distribution": The destination directory.  
 - Versioned file: A file with a file version, e.g. `app~fv=4mIbJJPq.min.js`.
-- Delimiter:  The FileVer delimiter string is (by default) `~fv=`.  The ending
+- Delimiter:  The filever delimiter string is (by default) `~fv=`.  The ending
   delimiter for a Version is any non-base64 character, such as another
   "~" character.  This follows the standard URL Query and URL Fragment Query
   notation.  
@@ -172,29 +117,30 @@ Directories `src` and `dist` may be named as desired.
 The suggested pipeline is to configure `watch` to watch relevant source files.
 1. Use [watchmod][watchmod] to watch specific files for change.
 2. On file change, configure `watch` to run a script that does (esbuild ->
-FileVer). FileVer is responsible for hashing the updated file, placing it into
-the dist directory, and update any source files references to the updated file
-in `dist`.
+`filever`). `filever` is responsible for hashing the updated file, placing it
+into the dist directory, and update any source files references to the updated
+file in `dist`.
 
 Then:
-  - modify js source file (file.js)-> 
-  - watchmod is triggered, runs a `.sh` script that invokes 1. esbuild and then 2. FileVer ->
-  - esbuild minifies source file, outputs `src/file.min.js`. 
-  - FileVer versions source file and outputs `dist/file~fv=4mIbJJPq.min.js` -> 
-  - FileVer updates other source code files in `dist` with FileVer (Replace).
+  - modify js source file (file.js)
+  - watchmod is triggered, runs a `.sh` script that invokes 1. esbuild and then
+    2. `filever`
+  - esbuild minifies source file, outputs `src/file.min.js`
+  - `filever` versions source file and outputs `dist/file~fv=4mIbJJPq.min.js`
+    (Version)
+  - `filever` updates other source code files in `dist` with filever (Replace).
 
 
 # Dummies - Import References to Versioned Files
 All text based source files that refer to versioned file should use the **dummy
-version** in import references in the `src` directory.  After running, FileVer
-will update references in `dist` with correct versioning (input will be left
-untouched).
+version** in import references in the `src` directory.  After running, `filever`
+updates references in `dist` with versioning (input will be left untouched).
 
 It is correct for Javascript files in `src` to import use this form: 
 
 `import * as test1 from './test_1~fv=00000000.js';`
 
-FileVer Replace() will update imports in `dist` to point to the correct file.
+`filever` Replace() updates imports in `dist` to point to the correct file.
 
 `import * as test1 from './test_1~fv=4WYoW0MN.js';`
 
@@ -207,7 +153,7 @@ FileVer Replace() will update imports in `dist` to point to the correct file.
 
 Note: A consequence of this design is that the versioned files digest will not
 match the current file name unless the references to versioned files are
-re-zeroed.  FileVer design assumes all Versioned file imports are zero'd.  
+re-zeroed.  `filever`'s design assumes all Versioned file imports are zero'd.  
 
 ## Not using dummy files, not using `src`, or not using zero'd imports.  
 If not wanting to use dummy files, each to-be-versioned file must be
@@ -255,7 +201,7 @@ the correct file.
 ```
 
 Any regex constrain would put restrictions on the syntax of the language itself.
-We want FileVer to be syntax agnostic, other than Unix pathing which is widely
+We want `filever` to be syntax agnostic, other than Unix pathing which is widely
 supported.  Including relative root significantly simplifies.  
 
 ## Update Recursion
@@ -288,11 +234,12 @@ DirHash: https://github.com/golang/mod/blob/ce943fd02449f621243c9ea6e64098e84752
 
 ----------------------------------------------------------------------
 # Attribution, Trademark notice, and License
-FileVer is released under The 3-Clause BSD License. 
+`filever` is released under The 3-Clause BSD License. 
 
 "Cyphr.me" is a trademark of Cypherpunk, LLC. The Cyphr.me logo is all rights
 reserved Cypherpunk, LLC and may not be used without permission.
 
 
 [watchmod]: https://github.com/Cyphrme/watchmod
-[ETag]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
+[ETag]:     https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
+[path]:     https://github.com/Cyphrme/Path
