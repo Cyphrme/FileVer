@@ -17,9 +17,9 @@ references in source files, making development fast and painless. Compared to
 other methods, `filever` shines when source files refer to versioned files and
 when file contents are frequently updated and changed.
 
-`filever` may be used in pipelines that involves these keywords: TypeScript,
-Sass, Go Templates, handlebars, Javascript minification, HTML minification, and
-CSS minification.
+`filever` may be used in pipelines that involves these keywords: File
+versioning, TypeScript, Sass, Go Templates, handlebars, Javascript minification,
+HTML minification, and CSS minification.
 
 
 # Version
