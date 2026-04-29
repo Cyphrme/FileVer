@@ -63,7 +63,7 @@ func ExampleVersionReplace() {
 	// 		"test_1~fv=00000000.js",
 	// 		"test_2~fv=00000000.js"
 	// 	],
-	// 	"SrcReg": {},
+	// 	"SrcReg": "[0-9A-Za-z_\\-\\/]*~fv=[0-9A-Za-z_\\-]*.[0-9A-Za-z_\\-.]*",
 	// 	"Dist": "test/dummy/dist",
 	// 	"UseSAVR": false,
 	// 	"Info": {
@@ -116,9 +116,8 @@ func Example_watchVersionAndReplace() {
 	// Set up and test with Watch. Normally (outside of testing) watch must call
 	// filever.  For testing, filever will call watch so that `go test` works.
 	// Also see notes in `watch_src.sh`
+	os.Args = []string{"cmd", "-config=test/watch.json5", "-daemon=false"}
 	watchmod.ParseFlags()
-	watchmod.FC.Daemon = false
-	watchmod.FC.ConfigPath = "test/watch.json5"
 	watchmod.Run()
 
 	// Normal FileVer setup.
@@ -131,11 +130,10 @@ func Example_watchVersionAndReplace() {
 	PrintFile(watchDist + "/" + c.Info.VersionedFiles[0])
 
 	// Output:
+	// Config path: test/watch.json5
 	// Flag `daemon` set to false.  Running commands in config and exiting.
-
-	// Replace Config  &{Src:test/watch/src SrcFiles:[subdir/test_3~fv=00000000.js subdir/test_4~fv=00000000.js test_1~fv=00000000.min.js test_2~fv=00000000.js] SrcReg:<nil> Dist:test/watch/dist UseSAVR:false Info:0xc0001dc5b0} Info: &{PV:map[subdir/test_3.js:gia0-_Z_ subdir/test_4.js:da1EKBXZ test_1.min.js:1sTEzePc test_2.js:qBbNrrTr] SAVR: VersionedFiles:[subdir/test_3~fv=gia0-_Z_.js subdir/test_4~fv=da1EKBXZ.js test_1~fv=1sTEzePc.min.js test_2~fv=qBbNrrTr.js] Index:map[] TotalSourceReplaces:0 UpdatedFilePaths:[] CurrentPath: CurrentMatches:0}
-	// ***WARNING*** Digest empty for test_3.js
-	// ***WARNING*** Digest empty for test_1.js
+	// ***WARNING*** Digest empty or too small for test_3.js
+	// ***WARNING*** Digest empty or too small for test_1.js
 	// {
 	// 	"Src": "test/watch/src",
 	// 	"SrcFiles": [
@@ -144,7 +142,7 @@ func Example_watchVersionAndReplace() {
 	// 		"test_1~fv=00000000.min.js",
 	// 		"test_2~fv=00000000.js"
 	// 	],
-	// 	"SrcReg": {},
+	// 	"SrcReg": "[0-9A-Za-z_\\-\\/]*~fv=[0-9A-Za-z_\\-]*.[0-9A-Za-z_\\-.]*",
 	// 	"Dist": "test/watch/dist",
 	// 	"UseSAVR": false,
 	// 	"Info": {
@@ -162,11 +160,11 @@ func Example_watchVersionAndReplace() {
 	// 			"test_2~fv=qBbNrrTr.js"
 	// 		],
 	// 		"Index": null,
-	// 		"TotalSourceReplaces": 20,
+	// 		"TotalSourceReplaces": 16,
+	// 		"CheckedFilePaths": null,
 	// 		"UpdatedFilePaths": [
 	// 			"test/watch/dist/subdir/test_3~fv=gia0-_Z_.js",
 	// 			"test/watch/dist/subdir/test_4~fv=da1EKBXZ.js",
-	// 			"test/watch/dist/test_1.min.js.map",
 	// 			"test/watch/dist/test_1~fv=1sTEzePc.min.js",
 	// 			"test/watch/dist/test_2~fv=qBbNrrTr.js"
 	// 		]
@@ -179,7 +177,6 @@ func Example_watchVersionAndReplace() {
 	// import * as test4 from '../subdir/test_4~fv=da1EKBXZ.js';
 	// // Comments referring to './test_1~fv=1sTEzePc.min.js' should be updated as well.
 	// ////////////////
-
 }
 
 // Example_noDummy demonstrates inputting "manually" enumerated files to be

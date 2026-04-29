@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cyphrme/coze"
+	"github.com/cyphrme/coz"
 	path "github.com/cyphrme/path"
 	"golang.org/x/exp/slices"
 )
@@ -46,7 +46,7 @@ var VerAnySizeRegexC *regexp.Regexp
 var FileVerPathReg = `[0-9A-Za-z_\-\/]*~fv=[0-9A-Za-z_\-]*.[0-9A-Za-z_\-.]*`
 
 // HashAlg is the hash alg used for versioning.
-var HashAlg = coze.SHA256
+var HashAlg = coz.SHA256
 
 // Config holds the settings for operating the main FileVer functions.
 //
@@ -495,15 +495,15 @@ func genSAVR(c *Config) {
 }
 
 // HashFile accepts a path, a hashing algorithm, return digest and pointer to file.
-func HashFile(path string, alg coze.HshAlg) (digest coze.B64, file *[]byte, err error) {
+func HashFile(path string, alg coz.HshAlg) (digest coz.B64, file *[]byte, err error) {
 	fileBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, nil, err
 	}
-	d, err := coze.Hash(alg, fileBytes)
+	d, err := coz.Hash(alg, fileBytes)
 	if err != nil {
 		return nil, nil, err
 	}
 	//fmt.Printf("FileDigest: %X", d)
-	return coze.B64(d), &fileBytes, nil
+	return coz.B64(d), &fileBytes, nil
 }

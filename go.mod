@@ -1,6 +1,6 @@
 module github.com/cyphrme/filever
 
-go 1.19
+go 1.24.0
 
 // Go Mod and Go Work Zami Tutorial
 // Go work/go mod/go has a bug: https://github.com/golang/go/issues/54264
@@ -36,22 +36,16 @@ go 1.19
 //
 // (The `!` character is the escape character for upper case directories)
 
-replace (
-	github.com/cyphrme/coze => ../coze
-	github.com/cyphrme/path => ../path
-	github.com/cyphrme/watchmod => ../watchmod
-)
-
 require (
-	github.com/cyphrme/coze v0.0.5
-	github.com/cyphrme/path v0.0.0-00010101000000-000000000000
-	github.com/cyphrme/watchmod v0.0.0-00010101000000-000000000000
+	github.com/cyphrme/coz v1.0.0
+	github.com/cyphrme/path v0.0.0-20260429163556-88ccdc9e54c5
+	github.com/cyphrme/watchmod v0.0.0-20260429165300-c22f2bdc62c2
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 
 require (
 	github.com/DisposaBoy/JsonConfigReader v0.0.0-20201129172854-99cf318d67e7 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	golang.org/x/crypto v0.8.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/crypto v0.46.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
 )
