@@ -228,8 +228,9 @@ especially considering the HTTP request itself is one of the most costly parts
 of page load.  
 
 # See also:
-DirHash: https://github.com/golang/mod/blob/ce943fd02449f621243c9ea6e64098e84752b92b/sumdb/dirhash/hash.go
-
+- [Cyphrme/Path](https://github.com/Cyphrme/Path)
+- [Cyphrme/URLFormJS](https://github.com/Cyphrme/URLFormJS)
+- [Golang's DirHash](https://github.com/golang/mod/blob/ce943fd02449f621243c9ea6e64098e84752b92b/sumdb/dirhash/hash.go)
 
 
 ----------------------------------------------------------------------
